@@ -9,9 +9,9 @@ exports.checkID = (req, res, next, val) => {
 }
 
 // check nul body form owner
-exports.checkOwnerBody = (req, res, next) => {
+exports.checkBodyNull = (req, res, next) => {
     const body = req.body;
-    const nullableFields = ['owner_img'];
+    const nullableFields = ['owner_img','ac'];
     for (let key in body) {
         if (!nullableFields.includes(key) && (body[key] === null || body[key].trim() === "")) {
             return res.status(400).json({ error: `The ${key} field cannot be null or empty.` });
