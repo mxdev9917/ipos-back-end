@@ -29,10 +29,7 @@ exports.createOwner = (req, res,next) => {
 exports.updateOwner = (req, res,next) => {
     try {
         let { id } = req.params;
-        id = Number(id);  // Convert the 'id' to a number
-        if (Number.isNaN(id)) {
-            return errors.mapError(400, "Request parameter invalid type", next);  // Change 404 to 400 for invalid input
-        }
+    id = Number(id)
     const {
         owner_name,
         owner_email,
