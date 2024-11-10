@@ -1,7 +1,8 @@
-const db = require('../db/connection')
-const errors = require('../utils/errors')
+const db = require('../db/connection');
+const errors = require('../utils/errors');
+const encrypt = require('../utils/encrypt');
 
-exports.createUserAdmin = (req, res, next) => {
+exports.createUserAdmin = async (req, res, next) => {
     try {
         let body = req.body;
         const {
@@ -14,7 +15,7 @@ exports.createUserAdmin = (req, res, next) => {
         } = body;
 
         // SQL query to insert user admin data
-        const sql = `
+        let sql = `
             INSERT INTO User_admins(
                 user_admin_name,
                 user_admin_email,
@@ -31,7 +32,7 @@ exports.createUserAdmin = (req, res, next) => {
             user_admin_email,
             user_admin_phone,
             user_admin_role,
-            user_admin_password,
+            await encrypt.hashPassword(user_admin_password), // Use the correct hashPassword function
             user_admin_img
         ], (error, results) => {
             if (error) {
@@ -49,6 +50,18 @@ exports.createUserAdmin = (req, res, next) => {
         return next(new Error("Internal server error"));
     }
 };
+
+exports.hashPassword = async (password) => {
+    try {
+        const hash = await bcrypt.hash(password, 10);
+        return hash;
+    } catch (error) {
+        console.log(error.message);
+        // Instead of errors.mapError, call next directly to pass the error to global handler
+        return next(new Error("Internal server error"));
+    }
+};
+
 
 exports.updateUserAdmin = (req, res, next) => {
     try {
