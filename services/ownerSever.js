@@ -15,21 +15,24 @@ exports.createOwner = (req, res,next) => {
     db.query(query, [owner_name, owner_email, owner_phone, owner_password, owner_img], (error, results) => {
         if (error) {
             console.error('Error inserting owner:', error.message);
-            errors.mapError(error, 500, "Internal server error", next);
+            errors.mapError( 500, "Internal server error", next);
             return;
         }
         return res.status(200).json({ message: 'Owner created successfully', data: results });
     });
    } catch (error) {
     console.log(error.message);
-    errors.mapError(error, 500, "Internal server error", next);
+    errors.mapError( 500, "Internal server error", next);
    }
 
 }
 exports.updateOwner = (req, res,next) => {
     try {
         let { id } = req.params;
-    id = Number(id)
+        id = Number(id);  // Convert the 'id' to a number
+        if (Number.isNaN(id)) {
+            return errors.mapError(400, "Request parameter invalid type", next);  // Change 404 to 400 for invalid input
+        }
     const {
         owner_name,
         owner_email,
@@ -37,9 +40,7 @@ exports.updateOwner = (req, res,next) => {
         owner_password,
         owner_img
     } = req.body;
-    if (!id) {
-        return res.status(400).json({ message: 'Owner ID is required' });
-    }
+   
     const query = `
         UPDATE Owners
         SET 
@@ -52,7 +53,7 @@ exports.updateOwner = (req, res,next) => {
     db.query(query, [owner_name, owner_email, owner_phone, owner_password, owner_img, id], (error, results) => {
         if (error) {
             console.error('Error updating owner:', error.message);
-            errors.mapError(error, 500, "Internal server error", next);
+            errors.mapError( 500, "Internal server error", next);
             return;
         }
         if (results.affectedRows === 0) {
@@ -62,25 +63,28 @@ exports.updateOwner = (req, res,next) => {
     });
     } catch (error) {
         console.log(error.message);
-        errors.mapError(error, 500, "Internal server error", next);
+        errors.mapError( 500, "Internal server error", next);
     }
 };
 exports.getOwnerById = (req, res,next) => {
     try {
         let { id } = req.params;
-    id = Number(id)
+        id = Number(id);  // Convert the 'id' to a number
+        if (Number.isNaN(id)) {
+            return errors.mapError(400, "Request parameter invalid type", next);  // Change 404 to 400 for invalid input
+        }
     const sql = 'SELECT * FROM Owners WHERE owner_id = ?';
     db.query(sql, [id], (error, results) => {
         if (error) {
             console.error('Error fetching owners:', error.message);
-            errors.mapError(error, 500, "Internal server error", next);
+            errors.mapError( 500, "Internal server error", next);
             return;
         }
         return res.status(200).json({ status: "200", message: 'success', data: results });
     });
     } catch (error) {
         console.log(error.message);
-        errors.mapError(error, 500, "Internal server error", next);
+        errors.mapError( 500, "Internal server error", next);
     }
 }
 exports.getAllOwner = (req, res, next) => {
@@ -96,18 +100,21 @@ exports.getAllOwner = (req, res, next) => {
         });
     } catch (error) {
         console.log(error.message);
-        errors.mapError(error, 500, "Internal server error", next);
+        errors.mapError( 500, "Internal server error", next);
     }
 }
 exports.deleteOwnerById = (req, res,next) => {
     try {
         let { id } = req.params;
-        id = Number(id); // Ensure the id is a number
+        id = Number(id);  // Convert the 'id' to a number
+        if (Number.isNaN(id)) {
+            return errors.mapError(400, "Request parameter invalid type", next);  // Change 404 to 400 for invalid input
+        }
         const sql = 'DELETE FROM Owners WHERE owner_id = ?';
         db.query(sql, [id], (error, results) => {
             if (error) {
                 console.error('Error deleting owner:', error.message);
-                errors.mapError(error, 500, "Internal server error", next);
+                errors.mapError( 500, "Internal server error", next);
                 return;
             }
             if (results.affectedRows === 0) {
@@ -121,7 +128,7 @@ exports.deleteOwnerById = (req, res,next) => {
         });
     } catch (error) {
         console.log(error.message);
-        errors.mapError(error, 500, "Internal server error", next); 
+        errors.mapError( 500, "Internal server error", next); 
     } 
 };
 

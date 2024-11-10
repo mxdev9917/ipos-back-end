@@ -18,7 +18,7 @@ exports.ApiError = ((err, req, res, next) => {
         })
 });
 
-exports.mapError = (err, status, msg,next) => {
+exports.mapError = ( status, msg,next) => {
     let error = Error()
     error.statusCode = status;
     error.status = msg;
