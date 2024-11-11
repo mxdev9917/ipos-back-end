@@ -16,7 +16,10 @@ Router.route('/owner/:id')
     .delete(middlewares.checkID, ownerService.deleteOwnerById)
     .get(middlewares.checkID, ownerService.getOwnerById);
 // all router user admin
+Router.route('/user-admin/signin')
+    .post(middlewares.checkBodyNull, userAdminService.signInUserAdmin)
 Router.route('/user-admin')
+    .get(userAdminService.getAllUserAdmin)
     .post(middlewares.checkBodyNull, userAdminService.createUserAdmin)
 
 Router.route('/user-admin/:id')

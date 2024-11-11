@@ -2,6 +2,45 @@ const db = require('../db/connection');
 const errors = require('../utils/errors');
 const encrypt = require('../utils/encrypt');
 
+exports.signInUserAdmin = async (req, res, next) => {
+    try {
+        let body = req.body;
+        const {
+            user_admin_email,
+            user_admin_status,
+            user_admin_password,
+        } = body;
+        const sql = 'SELECT * FROM User_admins WHERE user_admin_email = ?';
+        db.query(sql, [user_admin_email], async (error, results) => {
+            if (error) {
+                console.error('Error fetching use admin by id', error.message);
+                return errors.mapError(404, `not found Email : ${user_admin_email}`, next);
+            }
+            if (results.length === 0) {
+                return errors.mapError(404, `not found Email : ${user_admin_email}`, next);
+            } else {
+                const isPwdValid = await encrypt.comparePasswrod(user_admin_password, results[0].user_admin_password)
+                if (!isPwdValid) {
+                    return errors.mapError(401, `Password invlalid`, next);
+                } else {
+                    const isStatusValid = results[0].user_admin_status !== 'lock' && results[0].user_admin_status !== 'disable';
+                    if (!isStatusValid) {
+                        return errors.mapError(401, `this user is ${results[0].user_admin_status}`, next);
+                    } else {
+                        // create token
+                        let token = await encrypt.generateJWT({ email: user_admin_email });
+                        res.status(200).json({ status: "200", message: 'success', token: token, data: results });
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.log(error.message);
+        // Pass unexpected errors to the error handler
+        return next(new Error("Internal server error"));
+    }
+}
+
 exports.createUserAdmin = async (req, res, next) => {
     try {
         let body = req.body;
@@ -34,14 +73,16 @@ exports.createUserAdmin = async (req, res, next) => {
             user_admin_role,
             await encrypt.hashPassword(user_admin_password), // Use the correct hashPassword function
             user_admin_img
-        ], (error, results) => {
+        ], async (error, results) => {
             if (error) {
                 console.error('Error inserting user admin:', error.message);
                 // Handle error and forward to error handler
                 return next(new Error("Internal server error"));
             }
+
             // Return success response if no error
-            return res.status(200).json({ message: "User created successfully.", data: results });
+            res.status(200).json({ message: "User created successfully.", data: results });
+            return;
         });
 
     } catch (error) {
@@ -117,6 +158,10 @@ exports.getAllUserAdmin = (req, res, next) => {
                 errors.mapError(500, 'Internal server error');
                 return;
             }
+            // Check if the result is empty
+            if (results.length === 0) {
+                return errors.mapError(404, "No data in database", next)
+            }
             res.status(200).json({ status: "200", message: "success", data: results });
         });
 
@@ -139,6 +184,9 @@ exports.getUserAminById = (req, res, next) => {
             if (error) {
                 console.error('Error fetching use admin by id', error.message);
                 return errors.mapError(500, 'Internal server error', next);
+            }
+            if (results.length === 0) {
+                return errors.mapError(404, " Data not found", next)
             }
             res.status(200).json({ status: "200", message: 'success', data: results });
         });
