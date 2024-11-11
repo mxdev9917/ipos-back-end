@@ -102,9 +102,6 @@ exports.createUserAdmin = async (req, res, next) => {
     }
 };
 
-
-
-
 exports.updateUserAdmin = async (req, res, next) => {
     try {
         let { id } = req.params;
