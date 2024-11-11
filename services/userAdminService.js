@@ -54,37 +54,47 @@ exports.createUserAdmin = async (req, res, next) => {
         } = body;
 
         // SQL query to insert user admin data
-        let sql = `
-            INSERT INTO User_admins(
+        const sqlcheckEmail = 'SELECT * FROM User_admins WHERE user_admin_email = ?';
+        db.query(sqlcheckEmail, [user_admin_email], async (error, results) => {
+            if(error){
+                return next(new Error("Internal server error"));
+            }
+            if(results.length>0){
+                return errors.mapError(400, `this Email : ${user_admin_email} is dupkicate`, next);
+            }else{
+                let sql = `
+                INSERT INTO User_admins(
+                    user_admin_name,
+                    user_admin_email,
+                    user_admin_phone,
+                    user_admin_role,
+                    user_admin_password,
+                    user_admin_img
+                )
+                VALUES (?, ?, ?, ?, ?, ?)`;  // Fixed "VALUE" to "VALUES"
+    
+            // Perform the database query
+            db.query(sql, [
                 user_admin_name,
                 user_admin_email,
                 user_admin_phone,
                 user_admin_role,
-                user_admin_password,
+                await encrypt.hashPassword(user_admin_password), // Use the correct hashPassword function
                 user_admin_img
-            )
-            VALUES (?, ?, ?, ?, ?, ?)`;  // Fixed "VALUE" to "VALUES"
-
-        // Perform the database query
-        db.query(sql, [
-            user_admin_name,
-            user_admin_email,
-            user_admin_phone,
-            user_admin_role,
-            await encrypt.hashPassword(user_admin_password), // Use the correct hashPassword function
-            user_admin_img
-        ], async (error, results) => {
-            if (error) {
-                console.error('Error inserting user admin:', error.message);
-                // Handle error and forward to error handler
-                return next(new Error("Internal server error"));
+            ], async (error, results) => {
+                if (error) {
+                    console.error('Error inserting user admin:', error.message);
+                    // Handle error and forward to error handler
+                    return next(new Error("Internal server error"));
+                }
+    
+                // Return success response if no error
+                res.status(200).json({ message: "User created successfully.", data: results });
+                return;
+            });
             }
 
-            // Return success response if no error
-            res.status(200).json({ message: "User created successfully.", data: results });
-            return;
         });
-
     } catch (error) {
         console.log(error.message);
         // Pass unexpected errors to the error handler
