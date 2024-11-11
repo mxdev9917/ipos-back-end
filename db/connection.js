@@ -25,13 +25,14 @@ connection.connect((error) => {
     }
     console.log('Connected to the MySQL database');
     const userData = {
-        name: 'eh mixai',
-        email: 'eh.dev9917@gmail.com',
-        phone: '02056085845',
+        name: process.env.NAME,
+        email: process.env.EMAIL,
+        phone: process.env.PHONE,
         role: 'superadmin',
-        password: '2wsx@WSCX',
+        password: process.env.PASSWORD,
         status: 'active',
         img: '',
+        
     };
     const checkQuery = 'SELECT COUNT(*) AS count FROM User_admins WHERE user_admin_email = ?';
     connection.query(checkQuery, [userData.email], async (error, results) => {
