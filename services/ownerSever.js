@@ -1,7 +1,8 @@
 const db = require('../db/connection');
 const errors = require('../utils/errors')
+const encrypt = require('../utils/encrypt');
 
-exports.createOwner = (req, res,next) => {
+exports.createOwner = async(req, res,next) => {
    try {
     let body = req.body;
     const {
@@ -12,7 +13,7 @@ exports.createOwner = (req, res,next) => {
         owner_img
     } = body;
     const query = 'INSERT INTO Owners (owner_name, owner_email, owner_phone,  owner_password, owner_img) VALUES (?, ?, ?, ?, ?)';
-    db.query(query, [owner_name, owner_email, owner_phone, owner_password, owner_img], (error, results) => {
+    db.query(query, [owner_name, owner_email, owner_phone,await encrypt.hashPassword( owner_password), owner_img], (error, results) => {
         if (error) {
             console.error('Error inserting owner:', error.message);
             errors.mapError( 500, "Internal server error", next);
@@ -26,7 +27,7 @@ exports.createOwner = (req, res,next) => {
    }
 
 }
-exports.updateOwner = (req, res,next) => {
+exports.updateOwner =async (req, res,next) => {
     try {
         let { id } = req.params;
     id = Number(id)
@@ -47,7 +48,7 @@ exports.updateOwner = (req, res,next) => {
             owner_password = ?, 
             owner_img = ?
         WHERE owner_id = ?`;
-    db.query(query, [owner_name, owner_email, owner_phone, owner_password, owner_img, id], (error, results) => {
+    db.query(query, [owner_name, owner_email, owner_phone, await encrypt.hashPassword( owner_password), owner_img, id], (error, results) => {
         if (error) {
             console.error('Error updating owner:', error.message);
             errors.mapError( 500, "Internal server error", next);

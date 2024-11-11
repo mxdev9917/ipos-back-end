@@ -51,19 +51,10 @@ exports.createUserAdmin = async (req, res, next) => {
     }
 };
 
-exports.hashPassword = async (password) => {
-    try {
-        const hash = await bcrypt.hash(password, 10);
-        return hash;
-    } catch (error) {
-        console.log(error.message);
-        // Instead of errors.mapError, call next directly to pass the error to global handler
-        return next(new Error("Internal server error"));
-    }
-};
 
 
-exports.updateUserAdmin = (req, res, next) => {
+
+exports.updateUserAdmin = async (req, res, next) => {
     try {
         let { id } = req.params;
         id = Number(id);  // Convert id to a number
@@ -96,7 +87,7 @@ exports.updateUserAdmin = (req, res, next) => {
             user_admin_status,
             user_admin_phone,
             user_admin_role,
-            user_admin_password,
+            await encrypt.hashPassword(user_admin_password), // Use the correct hashPassword function
             user_admin_img,
             id
         ], (error, results) => {
