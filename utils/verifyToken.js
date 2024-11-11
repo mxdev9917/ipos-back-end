@@ -19,12 +19,6 @@ exports.userAdminVerifyToken = async (req, res, next) => {
         console.log(error.message);
         errors.mapError(401, 'Token invalid', next);
     }
-
     next();
 
 }
-
-
-
-
-// Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImVoQGdtYWlsLmNvbSIsImlhdCI6MTczMTMyNjg2NCwiZXhwIjoxNzMxMzMwNDY0fQ.SF_Fvoxbuy6W99D_jmS6_hGZZ6mgrwR5ngrUaojHUM4
