@@ -1,58 +1,49 @@
 const db = require('../db/connection');
 const errors = require('../utils/errors');
-const encrypt = require('../utils/encrypt');
 const calculateDate = require('../utils/calculateDate')
 
-exports.signInRes = (req, res, next) => {
-    try {
-        let body = req.body;
-        const {
-            restaurant_user,
-            restaurant_password,
-        } = body;
-        const sql = 'SELECT * FROM Restaurants WHERE restaurant_user = ?';
-        db.query(sql, [restaurant_user], async (error, results) => {
-            if (error) {
-                console.error('Error fetching use admin by id', error.message);
-                return errors.mapError(404, `not found user : ${restaurant_user}`, next);
-            }
-            if (results.length === 0) {
-                return errors.mapError(404, `not found user : ${restaurant_user}`, next);
-            } else {
-                const isPwdValid = await encrypt.comparePasswrod(restaurant_password, results[0].restaurant_password)
-                if (!isPwdValid) {
-                    return errors.mapError(401, `Password invlalid`, next);
-                } else {
-                    const isStatusValid = results[0].restaurant_status === 'lock' || results[0].restaurant_status === 'disable';
-                    if (isStatusValid) {
-                        return errors.mapError(401, `this user is ${results[0].restaurant_status}`, next);
-                    } else {
-                        // create token
-                        let token = await encrypt.generateJWT({ user: restaurant_user });
-                        res.status(200).json({ status: "200", message: 'success', token: token, data: results });
-                    }
-                }
-            }
-        });
-    } catch (error) {
-        console.log(error.Message);
-        errors.mapError(500, 'Internal server error', next);
-    }
-};
-
-
-
-
+// exports.signInRes = (req, res, next) => {
+//     try {
+//         let body = req.body;
+//         const {
+//             restaurant_user,
+//             restaurant_password,
+//         } = body;
+//         const sql = 'SELECT * FROM Restaurants WHERE restaurant_user = ?';
+//         db.query(sql, [restaurant_user], async (error, results) => {
+//             if (error) {
+//                 console.error('Error fetching use admin by id', error.message);
+//                 return errors.mapError(404, `not found user : ${restaurant_user}`, next);
+//             }
+//             if (results.length === 0) {
+//                 return errors.mapError(404, `not found user : ${restaurant_user}`, next);
+//             } else {
+//                 const isPwdValid = await encrypt.comparePasswrod(restaurant_password, results[0].restaurant_password)
+//                 if (!isPwdValid) {
+//                     return errors.mapError(401, `Password invlalid`, next);
+//                 } else {
+//                     const isStatusValid = results[0].restaurant_status === 'lock' || results[0].restaurant_status === 'disable';
+//                     if (isStatusValid) {
+//                         return errors.mapError(401, `this user is ${results[0].restaurant_status}`, next);
+//                     } else {
+//                         // create token
+//                         let token = await encrypt.generateJWT({ user: restaurant_user });
+//                         res.status(200).json({ status: "200", message: 'success', token: token, data: results });
+//                     }
+//                 }
+//             }
+//         });
+//     } catch (error) {
+//         console.log(error.Message);
+//         errors.mapError(500, 'Internal server error', next);
+//     }
+// };
 exports.createRas = async (req, res, next) => {
     try {
         let body = req.body;
         let {
             owner_ID,
-            restaurant_user,
             restaurant_name,
-            restaurant_email,
-            restaurant_phone,
-            restaurant_password,
             restaurant_img,
             qty,
             current_type
@@ -74,9 +65,9 @@ exports.createRas = async (req, res, next) => {
             return errors.mapError(400, "Invalid type. Owner must be number only", next);
         }
 
-        const sql = `INSERT INTO Restaurants (owner_ID, restaurant_user, restaurant_name, restaurant_email, restaurant_phone, restaurant_password, restaurant_img, restaurant_expiry_date)
-                     VALUES(?,?,?,?,?,?,?,?)`;
-        db.query(sql, [owner_ID, restaurant_user, restaurant_name, restaurant_email, restaurant_phone, await encrypt.hashPassword(restaurant_password), restaurant_img, expiryDate],
+        const sql = `INSERT INTO Restaurants (owner_ID,  restaurant_name,  restaurant_img, restaurant_expiry_date)
+                     VALUES(?,?,?,?)`;
+        db.query(sql, [owner_ID, restaurant_name, restaurant_img, expiryDate],
             (error, results) => {
                 if (error) {
                     console.error('Error create restaurant:', error.message);
@@ -94,7 +85,6 @@ exports.createRas = async (req, res, next) => {
 
     }
 }
-
 exports.updateRes = async (req, res, next) => {
     let { id } = req.params;
     id = Number(id);  // Convert id to a number
@@ -104,17 +94,13 @@ exports.updateRes = async (req, res, next) => {
     try {
         let body = req.body;
         let {
-            restaurant_user,
             restaurant_name,
-            restaurant_email,
-            restaurant_phone,
             restaurant_status,
-            restaurant_password,
             restaurant_img,
         } = body;
-    
-        const sql = `UPDATE  Restaurants SET restaurant_user=?, restaurant_name=?, restaurant_email=?, restaurant_phone=?,restaurant_status=?,restaurant_password=?, restaurant_img=? WHERE restaurant_ID=?`;
-        db.query(sql, [restaurant_user, restaurant_name, restaurant_email, restaurant_phone, restaurant_status, await encrypt.hashPassword(restaurant_password), restaurant_img,id ],
+
+        const sql = `UPDATE  Restaurants SET  restaurant_name=?,restaurant_status=?, restaurant_img=? WHERE restaurant_ID=?`;
+        db.query(sql, [restaurant_name, restaurant_status,  restaurant_img, id],
             (error, results) => {
                 if (error) {
                     console.error('Error updating restaurant:', error.message);
@@ -133,9 +119,6 @@ exports.updateRes = async (req, res, next) => {
     }
 
 }
-
-
-
 exports.getAllRes = (req, res, next) => {
     try {
         const sql = 'SELECT * FROM Restaurants ';
