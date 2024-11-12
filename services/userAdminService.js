@@ -35,12 +35,10 @@ exports.signInUserAdmin = async (req, res, next) => {
             }
         });
     } catch (error) {
-        console.log(error.message);
-        // Pass unexpected errors to the error handler
-        return next(new Error("Internal server error"));
+        console.log(error.Message);
+        errors.mapError(500, 'Internal server error', next);
     }
 }
-
 exports.createUserAdmin = async (req, res, next) => {
     try {
         let body = req.body;
@@ -57,7 +55,9 @@ exports.createUserAdmin = async (req, res, next) => {
         const sqlcheckEmail = 'SELECT * FROM User_admins WHERE user_admin_email = ?';
         db.query(sqlcheckEmail, [user_admin_email], async (error, results) => {
             if(error){
-                return next(new Error("Internal server error"));
+                console.error('Error fetching user admin:', error.message);
+                // Handle error and forward to error handler
+                return errors.mapError(500, 'Error fetching user admin', next);
             }
             if(results.length>0){
                 return errors.mapError(400, `this Email : ${user_admin_email} is dupkicate`, next);
@@ -85,7 +85,7 @@ exports.createUserAdmin = async (req, res, next) => {
                 if (error) {
                     console.error('Error inserting user admin:', error.message);
                     // Handle error and forward to error handler
-                    return next(new Error("Internal server error"));
+                    return errors.mapError(500, 'Error inserting user admin', next);
                 }
     
                 // Return success response if no error
@@ -96,9 +96,8 @@ exports.createUserAdmin = async (req, res, next) => {
 
         });
     } catch (error) {
-        console.log(error.message);
-        // Pass unexpected errors to the error handler
-        return next(new Error("Internal server error"));
+        console.log(error.Message);
+        errors.mapError(500, 'Internal server error', next);
     }
 };
 
@@ -141,7 +140,7 @@ exports.updateUserAdmin = async (req, res, next) => {
         ], (error, results) => {
             if (error) {
                 console.error('Error updating user admin:', error.message);
-                return errors.mapError(500, 'Internal server error', next);
+                return errors.mapError(500, 'Error updating user admin', next);
             }
             return res.status(200).json({
                 status: "200",
@@ -151,8 +150,8 @@ exports.updateUserAdmin = async (req, res, next) => {
         });
 
     } catch (error) {
-        console.error('Unexpected error:', error.message);
-        return errors.mapError(500, 'Internal server error', next);
+        console.log(error.Message);
+        errors.mapError(500, 'Internal server error', next);
     }
 };
 
@@ -162,7 +161,7 @@ exports.getAllUserAdmin = (req, res, next) => {
         db.query(sql, (error, results) => {
             if (error) {
                 console.error('Error fetching User admins error', error.message);
-                errors.mapError(500, 'Internal server error');
+                errors.mapError(500, 'Error fetching User admins error');
                 return;
             }
             // Check if the result is empty
@@ -174,7 +173,7 @@ exports.getAllUserAdmin = (req, res, next) => {
 
     } catch (error) {
         console.log(error.Message);
-        errors.mapError(500, 'Internal server error', next)
+        errors.mapError(500, 'Internal server error', next);
     }
 
 }
@@ -190,7 +189,7 @@ exports.getUserAminById = (req, res, next) => {
         db.query(sql, [id], (error, results) => {
             if (error) {
                 console.error('Error fetching use admin by id', error.message);
-                return errors.mapError(500, 'Internal server error', next);
+                return errors.mapError(500, 'Error fetching use admin by id', next);
             }
             if (results.length === 0) {
                 return errors.mapError(404, " Data not found", next)
@@ -200,8 +199,8 @@ exports.getUserAminById = (req, res, next) => {
 
 
     } catch (error) {
-        console.error(error.Message);
-        errors.mapError(500, 'Internal server error', next)
+        console.log(error.Message);
+        errors.mapError(500, 'Internal server error', next);
     }
 }
 
@@ -216,7 +215,7 @@ exports.deleteUserAdmin = (req, res, next) => {
         db.query(sql, [id], (error, results) => {
             if (error) {
                 console.log("Error deleting user admin", error.message);
-                return errors.mapError(500, 'Internal server error', next);
+                return errors.mapError(500, 'Error deleting user admin', next);
             }
             res.status(200).json({ status: "200", message: "user admin deleted successfuly", data: results });
         });
