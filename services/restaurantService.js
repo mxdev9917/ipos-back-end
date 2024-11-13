@@ -77,12 +77,9 @@ exports.createRas = async (req, res, next) => {
                 return;
             });
 
-
     } catch (error) {
         console.log(error.Message);
         errors.mapError(500, `Internal server error`, next);
-
-
     }
 }
 exports.updateRes = async (req, res, next) => {

@@ -25,7 +25,11 @@ exports.signInUserAdmin = async (req, res, next) => {
                 } else {
                     const isStatusValid = results[0].user_admin_status !== 'lock' || results[0].user_admin_status !== 'disable';
                     if (!isStatusValid) {
-                        return errors.mapError(401, `this user is ${results[0].user_admin_status}`, next);
+                        if(results[0].user_admin_status==="lock"){
+                            return errors.mapError(423, `this user is ${results[0].user_admin_status}`, next);
+                        }else{
+                            return errors.mapError(403, `this user is ${results[0].user_admin_status}`, next);
+                        } 
                     } else {
                         // create token
                         let token = await encrypt.generateJWT({ email: user_admin_email });
