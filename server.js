@@ -70,7 +70,7 @@ app.use('/api/v1', Router);  // Router should contain routes like /signin
 app.all('*', errors.pathError);
 
 // Use your custom API error handler (for catching other errors)
-app.use(errors.ApiError);
+// app.use(errors.ApiError);
 
 // Preflight CORS handling for OPTIONS requests
 app.options('*', cors());
