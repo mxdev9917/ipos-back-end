@@ -67,13 +67,13 @@ app.use(express.static('./public/images'));
 app.use('/api/v1', Router);  // Router should contain routes like /signin
 
 // 404 Error handler for undefined routes
-// app.all('*', errors.pathError);
+ app.all('*', errors.pathError);
 
 // Use your custom API error handler (for catching other errors)
-// app.use(errors.ApiError);
+ app.use(errors.ApiError);
 
 // Preflight CORS handling for OPTIONS requests
-app.options('*', cors());
+// app.options('*', cors());
 
 // Start the server on the defined port
 app.listen(port, () => {
