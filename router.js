@@ -8,7 +8,8 @@ const resService = require('./services/restaurantService')
 const Router = express.Router();
 Router.param('id', middlewares.checkID); // check pararm ID
 
-// all router owner 
+// all router owner
+Router.route('/').get(ownerService.Ownertest) 
 Router.route('/owner/signin')
     .post(middlewares.checkBodyNull, ownerService.signInOwner)
 Router.route('/owner/')
