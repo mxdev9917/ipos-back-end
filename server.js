@@ -43,8 +43,8 @@ dotenv.config({ path: './config.env' });
 const app = express();
 
 // Allowed origins for CORS (React frontend is usually on localhost:5173 in development)
-const allowedOrigins = ['http://localhost:5173'];  
-
+// const allowedOrigins = ['http://localhost:5173'];  
+const allowedOrigins = ['https://ipos-back-end.vercel.app/?vercelToolbarCode=BpSopJu-a9BrKrB/api']; 
 // Set the port for the server
 const port = process.env.PORT || 8080;
 
