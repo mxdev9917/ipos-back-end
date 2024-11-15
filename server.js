@@ -44,18 +44,18 @@ const app = express();
 
 // Allowed origins for CORS (React frontend is usually on localhost:5173 in development)
 // const allowedOrigins = ['http://localhost:5173'];  
-const allowedOrigins = ['https://ipos-back-end.vercel.app/?vercelToolbarCode=BpSopJu-a9BrKrB/api']; 
+// const allowedOrigins = ['https://ipos-back-end.vercel.app/?vercelToolbarCode=BpSopJu-a9BrKrB/api']; 
 // Set the port for the server
 const port = process.env.PORT || 8080;
 
 // Configure CORS middleware before any routes
-app.use(cors({
-    origin: allowedOrigins,  // Allow only specific origins
-    methods: ['GET', 'POST', 'PATCH', 'DELETE'],  // Allowed HTTP methods
-    allowedHeaders: ['Content-Type', 'Authorization'],  // Allowed headers
-    preflightContinue: false,  // Don't pass the preflight response to the next middleware
-    optionsSuccessStatus: 200  // For handling IE11's OPTIONS requests
-}));
+// app.use(cors({
+//     origin: allowedOrigins,  // Allow only specific origins
+//     methods: ['GET', 'POST', 'PATCH', 'DELETE'],  // Allowed HTTP methods
+//     allowedHeaders: ['Content-Type', 'Authorization'],  // Allowed headers
+//     preflightContinue: false,  // Don't pass the preflight response to the next middleware
+//     optionsSuccessStatus: 200  // For handling IE11's OPTIONS requests
+// }));
 
 // Middleware for parsing JSON request bodies
 app.use(express.json());
@@ -67,7 +67,7 @@ app.use(express.static('./public/images'));
 app.use('/api/v1', Router);  // Router should contain routes like /signin
 
 // 404 Error handler for undefined routes
-app.all('*', errors.pathError);
+// app.all('*', errors.pathError);
 
 // Use your custom API error handler (for catching other errors)
 // app.use(errors.ApiError);
