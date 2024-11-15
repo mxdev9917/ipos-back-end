@@ -3,13 +3,11 @@ const encrypt = require('./encrypt');
 
 exports.userAdminVerifyToken = async (req, res, next) => {
     const authHeader = req.headers.authorization;
-    console.log(authHeader);
-
     if (!authHeader) {
-        return errors.mapError(401, 'Token undefined', next);  // No Authorization header
+        return errors.mapError(404, 'Token undefined', next);  // No Authorization header
     }
     // Check if the Authorization header is in the correct "Bearer <token>" format
-    const token = authHeader.split(' ')[1];  // Assuming the format is "Bearer <token>"
+    let token = authHeader.split(' ')[1];  // Assuming the format is "Bearer <token>"
     if (!token) {
         return errors.mapError(401, 'Token missing', next);
     }

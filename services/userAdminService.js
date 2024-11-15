@@ -23,8 +23,8 @@ exports.signInUserAdmin = async (req, res, next) => {
                 if (!isPwdValid) {
                     return errors.mapError(401, `Password invlalid`, next);
                 } else {
-                    const isStatusValid = results[0].user_admin_status !== 'lock' || results[0].user_admin_status !== 'disable';
-                    if (!isStatusValid) {
+                    const isStatusValid = results[0].user_admin_status === 'lock' || results[0].user_admin_status === 'disable';
+                    if (isStatusValid) {
                         if(results[0].user_admin_status==="lock"){
                             return errors.mapError(423, `this user is ${results[0].user_admin_status}`, next);
                         }else{

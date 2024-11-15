@@ -131,12 +131,15 @@ exports.getOwnerById = (req, res, next) => {
 }
 exports.getAllOwner = (req, res, next) => {
     try {
-        const sql = 'SELECT * FROM Owners';
+        const sql = `SELECT O.owner_ID,O.owner_name, O.owner_email, O.owner_phone,O.owner_status, O.owner_img, O.owner_email, DATE_FORMAT(O.created_at, '%d-%m-%Y') AS  created_at, COUNT(R.restaurant_ID) AS restaurant_count FROM Owners O LEFT JOIN Restaurants R ON O.owner_ID = R.owner_ID GROUP BY O.owner_ID , O.owner_name`;
         db.query(sql, (error, results) => {
             if (error) {
                 console.error('Error fetching owners:', error.message);
-                errors.mapError(error, 500, "Internal server error", next)
+                errors.mapError(error, 500, "Error fetching owners", next)
                 return;
+            }
+            if (results.affectedRows === 0) {
+                return res.status(404).json({ message: 'Owner not found' });
             }
             return res.status(200).json({ status: "200", message: 'success', data: results });
         });

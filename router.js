@@ -12,7 +12,7 @@ Router.param('id', middlewares.checkID); // check pararm ID
 Router.route('/owner/signin')
     .post(middlewares.checkBodyNull, ownerService.signInOwner)
 Router.route('/owner/')
-    .get(ownerService.getAllOwner)
+    .get(userAdminVerifyToken.userAdminVerifyToken,ownerService.getAllOwner)
     .post(middlewares.checkBodyNull, ownerService.createOwner);
 Router.route('/owner/:id')
     .patch(middlewares.checkID, ownerService.updateOwner)
