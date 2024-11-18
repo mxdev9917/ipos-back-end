@@ -120,8 +120,9 @@ exports.getOwnerById = (req, res, next) => {
 
         // Prepare the SQL query to get the owner (1 row) and all related restaurants
         const sql = `
-            SELECT O.owner_name, O.owner_email,O.owner_phone,O.owner_status,O.owner_email,DATE_FORMAT(O.created_at, '%d-%m-%Y')AS owner_date,
-                   R.restaurant_ID, R.restaurant_name, R.restaurant_status, R.restaurant_img, DATE_FORMAT(R.restaurant_expiry_date,'%d-%m-%Y') AS restaurant_Expiry_date, DATE_FORMAT(R.created_at,'%d-%m-%Y') AS restaurant_created_at,R.restaurant_expiry_date AS expiry_date
+            SELECT O.owner_name, O.owner_email, O.owner_phone, O.owner_status, O.owner_email, DATE_FORMAT(O.created_at, '%d-%m-%Y') AS owner_date,
+                   R.restaurant_ID, R.restaurant_name, R.restaurant_status, R.restaurant_img, DATE_FORMAT(R.restaurant_expiry_date, '%d-%m-%Y') AS restaurant_Expiry_date, 
+                   DATE_FORMAT(R.created_at, '%d-%m-%Y') AS restaurant_created_at, R.restaurant_expiry_date AS expiry_date
             FROM Owners O
             LEFT JOIN Restaurants R ON O.owner_ID = R.owner_ID
             WHERE O.owner_ID = ?;
@@ -139,7 +140,7 @@ exports.getOwnerById = (req, res, next) => {
                 return res.status(404).json({ status: "404", message: "Owner not found" });
             }
 
-            // Extract owner data (first row)
+
             const ownerData = {
                 owner_name: results[0].owner_name,
                 owner_email: results[0].owner_email,
@@ -148,29 +149,20 @@ exports.getOwnerById = (req, res, next) => {
                 owner_date: results[0].owner_date,
             };
 
-            // Extract restaurant data (all rows except the first row)
+            const now = new Date();
+            const restaurants = results.map(row => {
+                const expiryDate = new Date(row.expiry_date);
 
-       
-           
-            
-            function formatDate(date) {
-                const d = new Date(date);
-                const day = String(d.getDate()).padStart(2, '0'); // Get day and add leading zero if necessary
-                const month = String(d.getMonth() + 1).padStart(2, '0'); // Get month (months are 0-indexed) and add leading zero
-                const year = d.getFullYear(); // Get full year
-                return `${day}-${month}-${year}`; // Format as 'DD-MM-YYYY'
-              }
-              
-              const formattedDate = formatDate(Date.now()); // Current date
-              console.log(formattedDate); 
-            const restaurants = results.map(row => ({
-                restaurant_ID: row.restaurant_ID,
-                restaurant_name: row.restaurant_name,
-                restaurant_status: row.restaurant_Expiry_date > formattedDate ? "Expired" : row.restaurant_status,
-                restaurant_img: row.restaurant_img,
-                restaurant_expiry_date: row.restaurant_Expiry_date,
-                restaurant_created_at: row.restaurant_created_at
-            }));
+                const expiryStatus = expiryDate < now ? "Expired" : row.restaurant_status;
+
+                return {
+                    restaurant_ID: row.restaurant_ID,
+                    restaurant_name: row.restaurant_name,
+                    restaurant_status:expiryStatus ,
+                    restaurant_img: row.restaurant_img,
+                    restaurant_expiry_date: row.restaurant_Expiry_date,
+                };
+            });
 
             // Send the response in the desired format
             return res.status(200).json({
@@ -187,6 +179,7 @@ exports.getOwnerById = (req, res, next) => {
         errors.mapError(500, "Internal server error", next);
     }
 };
+
 
 
 exports.getAllOwner = (req, res, next) => {
