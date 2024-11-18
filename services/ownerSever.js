@@ -26,8 +26,8 @@ exports.signInOwner = (req, res, next) => {
                             return errors.mapError(401, `this user is ${results[0].owner_status}`, next);
                         } else {
                             // create token
-                            const token=await encrypt.generateJWT({email:owner_email});
-                            return res.status(200).json({ status: "200", message: 'success',token:token, data: results });
+                            const token = await encrypt.generateJWT({ email: owner_email });
+                            return res.status(200).json({ status: "200", message: 'success', token: token, data: results });
                         }
                     }
                 }
@@ -112,23 +112,83 @@ exports.getOwnerById = (req, res, next) => {
     try {
         let { id } = req.params;
         id = Number(id);  // Convert the 'id' to a number
+
+        // Check for invalid 'id' format
         if (Number.isNaN(id)) {
-            return errors.mapError(400, "Request parameter invalid type", next);  // Change 404 to 400 for invalid input
+            return errors.mapError(400, "Request parameter invalid type", next);  // Return 400 for invalid input
         }
-        const sql = 'SELECT * FROM Owners WHERE owner_id = ?';
+
+        // Prepare the SQL query to get the owner (1 row) and all related restaurants
+        const sql = `
+            SELECT O.owner_name, O.owner_email,O.owner_phone,O.owner_status,O.owner_email,DATE_FORMAT(O.created_at, '%d-%m-%Y')AS owner_date,
+                   R.restaurant_ID, R.restaurant_name, R.restaurant_status, R.restaurant_img, DATE_FORMAT(R.restaurant_expiry_date,'%d-%m-%Y') AS restaurant_Expiry_date, DATE_FORMAT(R.created_at,'%d-%m-%Y') AS restaurant_created_at,R.restaurant_expiry_date AS expiry_date
+            FROM Owners O
+            LEFT JOIN Restaurants R ON O.owner_ID = R.owner_ID
+            WHERE O.owner_ID = ?;
+        `;
+
+        // Execute the query
         db.query(sql, [id], (error, results) => {
             if (error) {
-                console.error('Error fetching owners:', error.message);
-                errors.mapError(500, "Internal server error", next);
-                return;
+                console.error('Error fetching owners and restaurants:', error.message);
+                return errors.mapError(500, "Internal server error", next);  // Proper error forwarding
             }
-            return res.status(200).json({ status: "200", message: 'success', data: results });
+
+            // If no owner found with the given ID
+            if (results.length === 0) {
+                return res.status(404).json({ status: "404", message: "Owner not found" });
+            }
+
+            // Extract owner data (first row)
+            const ownerData = {
+                owner_name: results[0].owner_name,
+                owner_email: results[0].owner_email,
+                owner_phone: results[0].owner_phone,
+                owner_status: results[0].owner_status,
+                owner_date: results[0].owner_date,
+            };
+
+            // Extract restaurant data (all rows except the first row)
+
+       
+           
+            
+            function formatDate(date) {
+                const d = new Date(date);
+                const day = String(d.getDate()).padStart(2, '0'); // Get day and add leading zero if necessary
+                const month = String(d.getMonth() + 1).padStart(2, '0'); // Get month (months are 0-indexed) and add leading zero
+                const year = d.getFullYear(); // Get full year
+                return `${day}-${month}-${year}`; // Format as 'DD-MM-YYYY'
+              }
+              
+              const formattedDate = formatDate(Date.now()); // Current date
+              console.log(formattedDate); 
+            const restaurants = results.map(row => ({
+                restaurant_ID: row.restaurant_ID,
+                restaurant_name: row.restaurant_name,
+                restaurant_status: row.restaurant_Expiry_date > formattedDate ? "Expired" : row.restaurant_status,
+                restaurant_img: row.restaurant_img,
+                restaurant_expiry_date: row.restaurant_Expiry_date,
+                restaurant_created_at: row.restaurant_created_at
+            }));
+
+            // Send the response in the desired format
+            return res.status(200).json({
+                status: "200",
+                message: "Success",
+                data: {
+                    owner: ownerData,
+                    restaurants: restaurants
+                }
+            });
         });
     } catch (error) {
         console.log(error.message);
         errors.mapError(500, "Internal server error", next);
     }
-}
+};
+
+
 exports.getAllOwner = (req, res, next) => {
     try {
         const sql = `SELECT O.owner_ID,O.owner_name, O.owner_email, O.owner_phone,O.owner_status, O.owner_img, O.owner_email, DATE_FORMAT(O.created_at, '%d-%m-%Y') AS  created_at, COUNT(R.restaurant_ID) AS restaurant_count FROM Owners O LEFT JOIN Restaurants R ON O.owner_ID = R.owner_ID GROUP BY O.owner_ID , O.owner_name`;

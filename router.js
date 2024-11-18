@@ -41,6 +41,8 @@ Router.route('/restaurant')
 Router.route('/restaurant/:id')
     .delete(middlewares.checkID, resService.deleteRes)
     .patch(middlewares.checkID, middlewares.checkBodyNull, resService.updateRes)
+
+    
 module.exports = Router;
 
 
