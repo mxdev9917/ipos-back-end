@@ -139,8 +139,6 @@ exports.getOwnerById = (req, res, next) => {
             if (results.length === 0) {
                 return res.status(404).json({ status: "404", message: "Owner not found" });
             }
-
-
             const ownerData = {
                 owner_name: results[0].owner_name,
                 owner_email: results[0].owner_email,
@@ -151,20 +149,29 @@ exports.getOwnerById = (req, res, next) => {
 
             const now = new Date();
             const restaurants = results.map(row => {
+                if (!row.restaurant_ID) return null;
                 const expiryDate = new Date(row.expiry_date);
-
                 const expiryStatus = expiryDate < now ? "Expired" : row.restaurant_status;
-
                 return {
                     restaurant_ID: row.restaurant_ID,
                     restaurant_name: row.restaurant_name,
-                    restaurant_status:expiryStatus ,
+                    restaurant_status: expiryStatus,
                     restaurant_img: row.restaurant_img,
                     restaurant_expiry_date: row.restaurant_Expiry_date,
+                    restaurant_created_at: row.restaurant_created_at
                 };
             });
 
-            // Send the response in the desired format
+            if (results[0].restaurant_ID == undefined) { //owner is not restaurant yet
+                return res.status(200).json({
+                    status: "200",
+                    message: "Success",
+                    data: {
+                        owner: ownerData,
+                    },
+                    restaurantsMessage: "restaurant not found",
+                });
+            }
             return res.status(200).json({
                 status: "200",
                 message: "Success",

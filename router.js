@@ -3,7 +3,8 @@ const ownerService = require('./services/ownerSever')
 const userAdminService = require('./services/userAdminService')
 const middlewares = require('./middlewares/middleware')
 const userAdminVerifyToken = require('./utils/verifyToken')
-const resService = require('./services/restaurantService')
+const resService = require('./services/restaurantService');
+const { verifyToken } = require('./utils/encrypt');
 
 const Router = express.Router();
 Router.param('id', middlewares.checkID); // check pararm ID
@@ -18,7 +19,7 @@ Router.route('/owner/')
 Router.route('/owner/:id')
     .patch(middlewares.checkID, ownerService.updateOwner)
     .delete(middlewares.checkID, ownerService.deleteOwnerById)
-    .get(middlewares.checkID, ownerService.getOwnerById);
+    .get(middlewares.checkID, userAdminVerifyToken.userAdminVerifyToken,ownerService.getOwnerById);
 // all router user admin
 
 
