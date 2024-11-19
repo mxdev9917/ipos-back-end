@@ -16,7 +16,7 @@ exports.signInOwner = (req, res, next) => {
                     return;
                 }
                 if (results.length === 0) {
-                    return errors.mapError(500, `not found is ${owner_email} `, next);
+                    return errors.mapError(404, `not found is ${owner_email} `, next);
                 } else {
                     const isPwdValid = await encrypt.comparePasswrod(owner_password, results[0].owner_password)
                     if (!isPwdValid) {
@@ -24,7 +24,7 @@ exports.signInOwner = (req, res, next) => {
                     } else {
                         const isStatusValid = results[0].owner_status !== 'lock' || results[0].owner_status !== 'disable'
                         if (!isStatusValid) {
-                            return errors.mapError(401, `this user is ${results[0].owner_status}`, next);
+                            return errors.mapError(403, `this user is ${results[0].owner_status}`, next);
                         } else {
                             // create token
                             const token = await encrypt.generateJWT({ email: owner_email });
@@ -48,6 +48,8 @@ exports.signInOwner = (req, res, next) => {
 exports.createOwner = async (req, res, next) => {
     try {
         let body = req.body;
+        console.log(body);
+        
         const {
             owner_name,
             owner_email,
@@ -62,7 +64,7 @@ exports.createOwner = async (req, res, next) => {
                 errors.mapError(500, "Internal server error", next);
                 return;
             }
-            const sql = `SELECT * FROM Owners WHERE owner_email=?`
+            const sql = `SELECT owner_name, owner_email,owner_phone,owner_img,created_at FROM Owners WHERE owner_email=?`
             db.query(sql, [owner_email], async (error, results) => {
                 if(error){
                     console.error('Error fetching owner:', error.message);
