@@ -55,14 +55,24 @@ exports.createOwner = async (req, res, next) => {
             owner_password,
             owner_img
         } = body;
-        const query = 'INSERT INTO Owners (owner_name, owner_email, owner_phone,  owner_password, owner_img) VALUES (?, ?, ?, ?, ?)';
-        db.query(query, [owner_name, owner_email, owner_phone, await encrypt.hashPassword(owner_password), owner_img], (error, results) => {
+        const sql = 'INSERT INTO Owners (owner_name, owner_email, owner_phone,  owner_password, owner_img) VALUES (?, ?, ?, ?, ?)';
+        db.query(sql, [owner_name, owner_email, owner_phone, await encrypt.hashPassword(owner_password), owner_img], (error, results) => {
             if (error) {
                 console.error('Error inserting owner:', error.message);
                 errors.mapError(500, "Internal server error", next);
                 return;
             }
-            return res.status(200).json({ message: 'Owner created successfully', data: results });
+            const sql = `SELECT * FROM Owners WHERE owner_email=?`
+            db.query(sql, [owner_email], async (error, results) => {
+                if(error){
+                    console.error('Error fetching owner:', error.message);
+                    errors.mapError(500, "Internal server error", next);
+                    return;
+                }
+                 // create token
+                 const token = await encrypt.generateJWT({ email: owner_email });
+                 return res.status(200).json({ status: "200", message: 'success', token: token, data: results });
+            })    
         });
     } catch (error) {
         console.log(error.message);
@@ -235,32 +245,33 @@ exports.deleteOwnerById = (req, res, next) => {
         errors.mapError(500, "Internal server error", next);
     }
 }
-exports.lockOwner=(req,res,next)=>{
+exports.lockOwner = (req, res, next) => {
     try {
-        const{id}=req.params;
-        const body=req.body;
+        const { id } = req.params;
+        const body = req.body;
         console.log(body)
-        const {owner_status}=body
-       const sql=`UPDATE Owners SET owner_status=? WHERE owner_ID=?`
-       db.query(sql,[owner_status,id],(error,results)=>{
-        if(error){
-            console.log('Error updating owner status');  
-            return  errors.mapError(500, "Error updating owner status", next);
-        }
-        return res.status(200).json({
-            status: "200",
-            message: 'Owner status updated successfully',
-            data: results})
+        const { owner_status } = body
+        const sql = `UPDATE Owners SET owner_status=? WHERE owner_ID=?`
+        db.query(sql, [owner_status, id], (error, results) => {
+            if (error) {
+                console.log('Error updating owner status');
+                return errors.mapError(500, "Error updating owner status", next);
+            }
+            return res.status(200).json({
+                status: "200",
+                message: 'Owner status updated successfully',
+                data: results
+            })
 
-       })
-        
-     
-        
-        
-        
+        })
+
+
+
+
+
     } catch (error) {
         console.log(error.message);
-        errors.mapError(500,"Internal server errer",next)
+        errors.mapError(500, "Internal server errer", next)
     }
 
 
