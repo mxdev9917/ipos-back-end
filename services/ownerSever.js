@@ -1,6 +1,7 @@
 const db = require('../db/connection');
 const errors = require('../utils/errors')
 const encrypt = require('../utils/encrypt');
+const { json } = require('body-parser');
 
 exports.signInOwner = (req, res, next) => {
     try {
@@ -187,8 +188,6 @@ exports.getOwnerById = (req, res, next) => {
     }
 };
 
-
-
 exports.getAllOwner = (req, res, next) => {
     try {
         const sql = `SELECT O.owner_ID,O.owner_name, O.owner_email, O.owner_phone,O.owner_status, O.owner_img, O.owner_email, DATE_FORMAT(O.created_at, '%d-%m-%Y') AS  created_at, COUNT(R.restaurant_ID) AS restaurant_count FROM Owners O LEFT JOIN Restaurants R ON O.owner_ID = R.owner_ID GROUP BY O.owner_ID , O.owner_name`;
@@ -235,7 +234,44 @@ exports.deleteOwnerById = (req, res, next) => {
         console.log(error.message);
         errors.mapError(500, "Internal server error", next);
     }
-};
+}
+exports.lockOwner=(req,res,next)=>{
+    try {
+        const{id}=req.params;
+        const body=req.body;
+        console.log(body)
+        const {owner_status}=body
+       const sql=`UPDATE Owners SET owner_status=? WHERE owner_ID=?`
+       db.query(sql,[owner_status,id],(error,results)=>{
+        if(error){
+            console.log('Error updating owner status');  
+            return  errors.mapError(500, "Error updating owner status", next);
+        }
+        return res.status(200).json({
+            status: "200",
+            message: 'Owner status updated successfully',
+            data: results})
+
+       })
+        
+     
+        
+        
+        
+    } catch (error) {
+        console.log(error.message);
+        errors.mapError(500,"Internal server errer",next)
+    }
+
+
+
+}
+
+
+
+
+
+
 
 exports.Ownertest = (req, res, next) => {
     return res.status(200).json({ message: 'ipos' });

@@ -20,6 +20,8 @@ Router.route('/owner/:id')
     .patch(middlewares.checkID, ownerService.updateOwner)
     .delete(middlewares.checkID, ownerService.deleteOwnerById)
     .get(middlewares.checkID, userAdminVerifyToken.userAdminVerifyToken,ownerService.getOwnerById);
+Router.route('/owner/lock/:id')
+    .patch(middlewares.checkID,middlewares.checkBodyNull,ownerService.lockOwner);
 // all router user admin
 
 
