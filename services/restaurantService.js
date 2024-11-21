@@ -95,9 +95,9 @@ exports.updateRes = async (req, res, next) => {
             restaurant_status,
             restaurant_img,
         } = body;
-
-        const sql = `UPDATE  Restaurants SET  restaurant_name=?,restaurant_status=?, restaurant_img=? WHERE restaurant_ID=?`;
-        db.query(sql, [restaurant_name, restaurant_status,  restaurant_img, id],
+        const now = new Date();
+        const sql = `UPDATE  Restaurants SET  restaurant_name=?,restaurant_status=?, restaurant_img=?, update_at=? WHERE restaurant_ID=?`;
+        db.query(sql, [restaurant_name, restaurant_status,  restaurant_img,now, id],
             (error, results) => {
                 if (error) {
                     console.error('Error updating restaurant:', error.message);

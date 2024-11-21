@@ -189,7 +189,7 @@ exports.updateOwner = async (req, res, next) => {
             owner_password,
             owner_img
         } = req.body;
-
+        const now = new Date();
         const query = `
         UPDATE Owners
         SET 
@@ -198,9 +198,10 @@ exports.updateOwner = async (req, res, next) => {
             owner_phone = ?, 
             owner_status= ?,
             owner_password = ?, 
-            owner_img = ?
+            owner_img = ?,
+            update_at =?
         WHERE owner_id = ?`;
-        db.query(query, [owner_name, owner_email, owner_phone, owner_status, await encrypt.hashPassword(owner_password), owner_img, id], (error, results) => {
+        db.query(query, [owner_name, owner_email, owner_phone, owner_status, await encrypt.hashPassword(owner_password), owner_img,now, id], (error, results) => {
             if (error) {
                 console.error('Error updating owner:', error.message);
                 errors.mapError(500, "Internal server error", next);
@@ -348,8 +349,9 @@ exports.lockOwner = (req, res, next) => {
         const body = req.body;
         console.log(body)
         const { owner_status } = body
-        const sql = `UPDATE Owners SET owner_status=? WHERE owner_ID=?`
-        db.query(sql, [owner_status, id], (error, results) => {
+        const now = new Date();
+        const sql = `UPDATE Owners SET owner_status=?, update_at =? WHERE owner_ID=?`
+        db.query(sql, [owner_status,now, id], (error, results) => {
             if (error) {
                 console.log('Error updating owner status');
                 return errors.mapError(500, "Error updating owner status", next);
@@ -374,13 +376,6 @@ exports.lockOwner = (req, res, next) => {
 
 
 }
-
-
-
-
-
-
-
 exports.Ownertest = (req, res, next) => {
     return res.status(200).json({ message: 'ipos' });
 };

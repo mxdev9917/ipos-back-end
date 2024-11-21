@@ -25,11 +25,11 @@ exports.signInUserAdmin = async (req, res, next) => {
                 } else {
                     const isStatusValid = results[0].user_admin_status === 'lock' || results[0].user_admin_status === 'disable';
                     if (isStatusValid) {
-                        if(results[0].user_admin_status==="lock"){
+                        if (results[0].user_admin_status === "lock") {
                             return errors.mapError(423, `this user is ${results[0].user_admin_status}`, next);
-                        }else{
+                        } else {
                             return errors.mapError(403, `this user is ${results[0].user_admin_status}`, next);
-                        } 
+                        }
                     } else {
                         // create token
                         let token = await encrypt.generateJWT({ email: user_admin_email });
@@ -58,14 +58,14 @@ exports.createUserAdmin = async (req, res, next) => {
         // SQL query to insert user admin data
         const sqlcheckEmail = 'SELECT * FROM User_admins WHERE user_admin_email = ?';
         db.query(sqlcheckEmail, [user_admin_email], async (error, results) => {
-            if(error){
+            if (error) {
                 console.error('Error fetching user admin:', error.message);
                 // Handle error and forward to error handler
                 return errors.mapError(500, 'Error fetching user admin', next);
             }
-            if(results.length>0){
+            if (results.length > 0) {
                 return errors.mapError(400, `this Email : ${user_admin_email} is dupkicate`, next);
-            }else{
+            } else {
                 let sql = `
                 INSERT INTO User_admins(
                     user_admin_name,
@@ -76,26 +76,26 @@ exports.createUserAdmin = async (req, res, next) => {
                     user_admin_img
                 )
                 VALUES (?, ?, ?, ?, ?, ?)`;  // Fixed "VALUE" to "VALUES"
-    
-            // Perform the database query
-            db.query(sql, [
-                user_admin_name,
-                user_admin_email,
-                user_admin_phone,
-                user_admin_role,
-                await encrypt.hashPassword(user_admin_password), // Use the correct hashPassword function
-                user_admin_img
-            ], async (error, results) => {
-                if (error) {
-                    console.error('Error inserting user admin:', error.message);
-                    // Handle error and forward to error handler
-                    return errors.mapError(500, 'Error inserting user admin', next);
-                }
-    
-                // Return success response if no error
-                res.status(200).json({ message: "User created successfully.", data: results });
-                return;
-            });
+
+                // Perform the database query
+                db.query(sql, [
+                    user_admin_name,
+                    user_admin_email,
+                    user_admin_phone,
+                    user_admin_role,
+                    await encrypt.hashPassword(user_admin_password), // Use the correct hashPassword function
+                    user_admin_img
+                ], async (error, results) => {
+                    if (error) {
+                        console.error('Error inserting user admin:', error.message);
+                        // Handle error and forward to error handler
+                        return errors.mapError(500, 'Error inserting user admin', next);
+                    }
+
+                    // Return success response if no error
+                    res.status(200).json({ message: "User created successfully.", data: results });
+                    return;
+                });
             }
 
         });
@@ -121,6 +121,7 @@ exports.updateUserAdmin = async (req, res, next) => {
             user_admin_password,
             user_admin_img
         } = req.body;
+        const now = new Date();
         const sql = `
             UPDATE User_admins
             SET
@@ -130,7 +131,8 @@ exports.updateUserAdmin = async (req, res, next) => {
                 user_admin_phone = ?,
                 user_admin_role = ?,
                 user_admin_password = ?,
-                user_admin_img = ?
+                user_admin_img = ?,
+                update_at=?
             WHERE user_admin_ID = ?`;
         db.query(sql, [
             user_admin_name,
@@ -140,6 +142,7 @@ exports.updateUserAdmin = async (req, res, next) => {
             user_admin_role,
             await encrypt.hashPassword(user_admin_password), // Use the correct hashPassword function
             user_admin_img,
+            now,
             id
         ], (error, results) => {
             if (error) {
