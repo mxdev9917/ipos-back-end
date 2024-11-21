@@ -43,7 +43,7 @@ exports.signInOwner = (req, res, next) => {
                                 owner_status: results[0].owner_status,
                                 owner_date: results[0].owner_date,
                             };
-                
+
                             const now = new Date();
                             const restaurants = results.map(row => {
                                 if (!row.restaurant_ID) return null;
@@ -58,7 +58,7 @@ exports.signInOwner = (req, res, next) => {
                                     restaurant_created_at: row.restaurant_created_at
                                 };
                             });
-                
+
                             if (results[0].restaurant_ID == undefined) { //owner is not restaurant yet
                                 return res.status(200).json({
                                     status: "200",
@@ -115,16 +115,60 @@ exports.createOwner = async (req, res, next) => {
                 errors.mapError(500, "Internal server error", next);
                 return;
             }
-            const sql = `SELECT owner_name, owner_email,owner_phone,owner_img,created_at FROM Owners WHERE owner_email=?`
+            const sql = `
+            SELECT O.owner_name, O.owner_email, O.owner_phone, O.owner_status, O.owner_email, DATE_FORMAT(O.created_at, '%d-%m-%Y') AS owner_date,
+                   R.restaurant_ID, R.restaurant_name, R.restaurant_status, R.restaurant_img, DATE_FORMAT(R.restaurant_expiry_date, '%d-%m-%Y') AS restaurant_Expiry_date, 
+                   DATE_FORMAT(R.created_at, '%d-%m-%Y') AS restaurant_created_at, R.restaurant_expiry_date AS expiry_date
+            FROM Owners O
+            LEFT JOIN Restaurants R ON O.owner_ID = R.owner_ID
+            WHERE O.owner_email = ?;
+            `;
             db.query(sql, [owner_email], async (error, results) => {
                 if (error) {
                     console.error('Error fetching owner:', error.message);
                     errors.mapError(500, "Internal server error", next);
                     return;
                 }
-                // create token
-                const token = await encrypt.generateJWT({ email: owner_email });
-                return res.status(200).json({ status: "200", message: 'success', token: token, data: results });
+                const ownerData = {
+                    owner_name: results[0].owner_name,
+                    owner_email: results[0].owner_email,
+                    owner_phone: results[0].owner_phone,
+                    owner_status: results[0].owner_status,
+                    owner_date: results[0].owner_date,
+                };
+
+                const now = new Date();
+                const restaurants = results.map(row => {
+                    if (!row.restaurant_ID) return null;
+                    const expiryDate = new Date(row.expiry_date);
+                    const expiryStatus = expiryDate < now ? "Expired" : row.restaurant_status;
+                    return {
+                        restaurant_ID: row.restaurant_ID,
+                        restaurant_name: row.restaurant_name,
+                        restaurant_status: expiryStatus,
+                        restaurant_img: row.restaurant_img,
+                        restaurant_expiry_date: row.restaurant_Expiry_date,
+                        restaurant_created_at: row.restaurant_created_at
+                    };
+                });
+                if (results[0].restaurant_ID == undefined) {
+                    return res.status(200).json({
+                        status: "200",
+                        message: "Success",
+                        data: {
+                            owner: ownerData,
+                        },
+                        restaurantsMessage: "restaurant not found",
+                    });
+                }
+                return res.status(200).json({
+                    status: "200",
+                    message: "Success",
+                    data: {
+                        owner: ownerData,
+                        restaurants: restaurants
+                    }
+                });
             })
         });
     } catch (error) {
