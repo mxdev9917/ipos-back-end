@@ -31,8 +31,10 @@ exports.signInUserAdmin = async (req, res, next) => {
                             return errors.mapError(403, `this user is ${results[0].user_admin_status}`, next);
                         }
                     } else {
-                        // create token
-                        let token = await encrypt.generateJWT({ email: user_admin_email });
+                        const token = await encrypt.generateJWT({
+                            email: 'user@example.com',
+                            user_type: 'administrator'
+                          });
                         res.status(200).json({ status: "200", message: 'success', token: token, data: results });
                     }
                 }

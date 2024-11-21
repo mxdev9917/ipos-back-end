@@ -30,12 +30,15 @@ exports.signInOwner = (req, res, next) => {
                     if (!isPwdValid) {
                         return errors.mapError(401, 'Password invlalid', next);
                     } else {
-                        const isStatusValid = results[0].owner_status !== 'lock' || results[0].owner_status !== 'disable'
-                        if (!isStatusValid) {
+                        const isStatusValid = results[0].owner_status === 'lock'
+                        if (isStatusValid) {
                             return errors.mapError(403, `this user is ${results[0].owner_status}`, next);
                         } else {
                             // create token
-                            const token = await encrypt.generateJWT({ email: owner_email });
+                            const token = await encrypt.generateJWT({
+                                email: 'user@example.com',
+                                user_type: 'customer'
+                              });
                             const ownerData = {
                                 owner_name: results[0].owner_name,
                                 owner_email: results[0].owner_email,
@@ -151,9 +154,15 @@ exports.createOwner = async (req, res, next) => {
                         restaurant_created_at: row.restaurant_created_at
                     };
                 });
+                // create token
+                const token = await encrypt.generateJWT({
+                    email: 'user@example.com',
+                    user_type: 'customer'
+                  });
                 if (results[0].restaurant_ID == undefined) {
                     return res.status(200).json({
                         status: "200",
+                        token:token,
                         message: "Success",
                         data: {
                             owner: ownerData,
@@ -163,6 +172,7 @@ exports.createOwner = async (req, res, next) => {
                 }
                 return res.status(200).json({
                     status: "200",
+                    token:token,
                     message: "Success",
                     data: {
                         owner: ownerData,
