@@ -49,6 +49,7 @@ exports.createRas = async (req, res, next) => {
             current_type
         } = body;
         console.log(body);
+        const status=""
 
         qty = Number(qty);
         if (Number.isNaN(qty)) {

@@ -4,13 +4,21 @@ const dotenv = require('dotenv');
 dotenv.config({ path: './config.env' });
 
 const connection = mysql.createConnection({
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_DATABASE,
-    connectTimeout: process.env.DB_CONNECTTIMEOUT, // 10 seconds
+    host: "mysql-c5cf0bb-eh-85b4.k.aivencloud.com",
+    port: 20292,
+    user: "avnadmin",
+    password:"AVNS_JFLSGxifEsR50ZilpHX",
+    database: "defaultdb",
+    connectTimeout: 10000, // 10 seconds
 });
+// const connection = mysql.createConnection({
+//     host: process.env.DB_HOST,
+//     port: process.env.DB_PORT,
+//     user: process.env.DB_USER,
+//     password: process.env.DB_PASSWORD,
+//     database: process.env.DB_DATABASE,
+//     connectTimeout: process.env.DB_CONNECTTIMEOUT, // 10 seconds
+// });
 
 console.log('DB_HOST:', process.env.DB_HOST);
 console.log('DB_USER:', process.env.DB_USER);

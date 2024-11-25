@@ -9,7 +9,7 @@ exports.signInOwner = (req, res, next) => {
         const { owner_email, owner_password } = body;
         // const sql = 'SELECT * FROM Owners WHERE owner_email = ?';
         const sql = `
-            SELECT O.owner_name, O.owner_email, O.owner_phone, O.owner_status, O.owner_email,O.owner_password, DATE_FORMAT(O.created_at, '%d-%m-%Y') AS owner_date,
+            SELECT O.owner_ID, O.owner_name, O.owner_email, O.owner_phone, O.owner_status, O.owner_email,O.owner_password, DATE_FORMAT(O.created_at, '%d-%m-%Y') AS owner_date,
                    R.restaurant_ID, R.restaurant_name, R.restaurant_status, R.restaurant_img, DATE_FORMAT(R.restaurant_expiry_date, '%d-%m-%Y') AS restaurant_Expiry_date, 
                    DATE_FORMAT(R.created_at, '%d-%m-%Y') AS restaurant_created_at, R.restaurant_expiry_date AS expiry_date
             FROM Owners O
@@ -37,9 +37,11 @@ exports.signInOwner = (req, res, next) => {
                             // create token
                             const token = await encrypt.generateJWT({
                                 email: 'user@example.com',
-                                user_type: 'customer'
+                                user_type: 'customer',
+                                owner_id: results[0].owner_ID,
                               });
                             const ownerData = {
+                                owner_id: results[0].owner_ID,
                                 owner_name: results[0].owner_name,
                                 owner_email: results[0].owner_email,
                                 owner_phone: results[0].owner_phone,
