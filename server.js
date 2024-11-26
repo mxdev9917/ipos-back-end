@@ -25,7 +25,7 @@ app.use(express.json());
 
 app.use(express.static('./public/images'));
 
-app.use('/api/v1', Router); 
+app.use('/', Router); 
 
 app.all('*', errors.pathError);
 
