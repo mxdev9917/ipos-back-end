@@ -45,7 +45,7 @@ Router.route('/restaurant/:id')
     .delete(middlewares.checkID, resService.deleteRes)
     .patch(middlewares.checkID, middlewares.checkBodyNull, resService.updateRes)
 
-    
+    // http://localhost:8080/restaurant
 module.exports = Router;
 
 

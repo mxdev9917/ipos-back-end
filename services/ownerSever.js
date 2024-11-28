@@ -104,8 +104,6 @@ exports.signInOwner = (req, res, next) => {
 exports.createOwner = async (req, res, next) => {
     try {
         let body = req.body;
-        console.log(body);
-
         const {
             owner_name,
             owner_email,
@@ -135,6 +133,7 @@ exports.createOwner = async (req, res, next) => {
                     return;
                 }
                 const ownerData = {
+                    owner_id: results[0].owner_ID,
                     owner_name: results[0].owner_name,
                     owner_email: results[0].owner_email,
                     owner_phone: results[0].owner_phone,
@@ -157,9 +156,11 @@ exports.createOwner = async (req, res, next) => {
                     };
                 });
                 // create token
+                // create token
                 const token = await encrypt.generateJWT({
                     email: 'user@example.com',
-                    user_type: 'customer'
+                    user_type: 'customer',
+                    owner_id: results[0].owner_ID,
                   });
                 if (results[0].restaurant_ID == undefined) {
                     return res.status(200).json({
