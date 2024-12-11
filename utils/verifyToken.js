@@ -1,7 +1,7 @@
 const errors = require('./errors');
 const encrypt = require('./encrypt');
 
-exports.userAdminVerifyToken = async (req, res, next) => {
+exports.verifyToken = async (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
         return errors.mapError(404, 'Token undefined', next);  // No Authorization header
