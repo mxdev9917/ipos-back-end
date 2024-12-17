@@ -38,3 +38,7 @@ exports.createUser = async (req, res, next) => {
 exports.deleteUser=(req,res,next)=>{
     return res.status(200).json({ message: 'Users create successfully'});
 }
+
+exports.signInUser=(req,res,next)=>{
+
+}

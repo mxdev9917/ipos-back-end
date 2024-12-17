@@ -36,10 +36,11 @@ exports.signInOwner = (req, res, next) => {
                         } else {
                             // create token
                             const token = await encrypt.generateJWT({
-                                email: 'user@example.com',
+                                email: results[0].owner_email,
                                 user_type: 'customer',
-                                owner_id: results[0].owner_ID,
+                                owner_id: results[0].owner_ID
                               });
+                              
                             const ownerData = {
                                 owner_id: results[0].owner_ID,
                                 owner_name: results[0].owner_name,

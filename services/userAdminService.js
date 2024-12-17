@@ -32,8 +32,10 @@ exports.signInUserAdmin = async (req, res, next) => {
                         }
                     } else {
                         const token = await encrypt.generateJWT({
-                            email: 'user@example.com',
-                            user_type: 'administrator'
+                            email: results[0].user_admin_email,
+                            user_type: 'administrator',
+                             admin_id: results[0].user_admin_ID
+
                           });
                         res.status(200).json({ status: "200", message: 'success', token: token, data: results });
                     }
