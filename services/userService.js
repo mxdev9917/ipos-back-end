@@ -3,7 +3,7 @@ const encrypt = require('../utils/encrypt');
 const db = require('../db/connection');
 
 exports.checkUser = (req, res, next) => {
-    const user = req.body.user || req.body.user_mane;
+    const user = req.body.user || req.body.user_mane; 
     try {
         const sql = 'SELECT * FROM Users WHERE user = ?';
         db.query(sql, [user], (error, results) => {
@@ -13,7 +13,7 @@ exports.checkUser = (req, res, next) => {
                 return;
             }
             if (results.length > 0) {
-                return res.status(409).json({status: "409", message: `This ${user} already used ` });
+                return res.status(200).json({status: "409", message: `This ${user} already used ` });
             }
             return res.status(200).json({status: "200", message: `This ${user} is available` });
         });

@@ -47,7 +47,7 @@ Router.route('/restaurant/:id')
 // all router Users
 Router.route('/user')
     .post(middlewares.checkBodyNull,userService.createUser) 
-    Router.route('/checkuser').get(userService.checkUser)
+    Router.route('/checkuser').post(userService.checkUser)
 
 module.exports = Router;
 
