@@ -2,10 +2,25 @@ const errors = require('../utils/errors')
 const encrypt = require('../utils/encrypt');
 const db = require('../db/connection');
 
-exports.checkUser=(req,res,next)=>{
-    let body =req.body;
-    const user =body;
-    console.log(user);
+exports.checkUser = (req, res, next) => {
+    const user = req.body.user || req.body.user_mane;
+    try {
+        const sql = 'SELECT * FROM Users WHERE user = ?';
+        db.query(sql, [user], (error, results) => {
+            if (error) {
+                console.error('Error inserting user:', error.message);
+                errors.mapError(500, "Internal server error", next);
+                return;
+            }
+            if (results.length > 0) {
+                return res.status(409).json({status: "409", message: `This ${user} already used ` });
+            }
+            return res.status(200).json({status: "200", message: `This ${user} is available` });
+        });
+    } catch (error) {
+        console.log(error.message);
+        errors.mapError(500, 'Internal server error', next);
+    }
 }
 
 exports.createUser = async (req, res, next) => {
@@ -30,7 +45,7 @@ exports.createUser = async (req, res, next) => {
                     errors.mapError(500, "Internal server error", next);
                     return;
                 }
-                return res.status(200).json({status: "200", message: 'Users create successfully', data: results });
+                return res.status(200).json({ status: "200", message: 'Users create successfully', data: results });
             })
 
 
@@ -42,10 +57,10 @@ exports.createUser = async (req, res, next) => {
     }
 }
 
-exports.deleteUser=(req,res,next)=>{
-    return res.status(200).json({ message: 'Users create successfully'});
+exports.deleteUser = (req, res, next) => {
+    return res.status(200).json({ message: 'Users create successfully' });
 }
 
-exports.signInUser=(req,res,next)=>{
+exports.signInUser = (req, res, next) => {
 
 }
