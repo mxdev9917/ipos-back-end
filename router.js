@@ -18,36 +18,42 @@ Router.route('/owner')
     .get(verifyToken.verifyToken, ownerService.getAllOwner)
     .post(middlewares.checkBodyNull, ownerService.createOwner);
 Router.route('/owner/:id')
-    .patch(middlewares.checkID,verifyToken.verifyToken, ownerService.updateOwner)
-    .delete(middlewares.checkID,verifyToken.verifyToken, ownerService.deleteOwnerById)
+    .patch(middlewares.checkID, verifyToken.verifyToken, ownerService.updateOwner)
+    .delete(middlewares.checkID, verifyToken.verifyToken, ownerService.deleteOwnerById)
     .get(middlewares.checkID, verifyToken.verifyToken, ownerService.getOwnerById);
 Router.route('/owner/lock/:id')
-    .patch(middlewares.checkID,verifyToken.verifyToken, middlewares.checkBodyNull, ownerService.lockOwner);
+    .patch(middlewares.checkID, verifyToken.verifyToken, middlewares.checkBodyNull, ownerService.lockOwner);
 // all router user admin
 
 
 Router.route('/user-admin/signin')
     .post(middlewares.checkBodyNull, userAdminService.signInUserAdmin)
 Router.route('/user-admin')
-    .get(verifyToken.verifyToken,userAdminService.getAllUserAdmin)
-    .post(middlewares.checkBodyNull,verifyToken.verifyToken,userAdminService.createUserAdmin)
+    .get(verifyToken.verifyToken, userAdminService.getAllUserAdmin)
+    .post(middlewares.checkBodyNull, verifyToken.verifyToken, userAdminService.createUserAdmin)
 Router.route('/user-admin/:id')
     .get(middlewares.checkID, verifyToken.verifyToken, userAdminService.getUserAminById)
-    .patch(middlewares.checkID,verifyToken.verifyToken, middlewares.checkBodyNull, userAdminService.updateUserAdmin)
-    .delete(middlewares.checkID,verifyToken.verifyToken, userAdminService.deleteUserAdmin)
+    .patch(middlewares.checkID, verifyToken.verifyToken, middlewares.checkBodyNull, userAdminService.updateUserAdmin)
+    .delete(middlewares.checkID, verifyToken.verifyToken, userAdminService.deleteUserAdmin)
 
 // all router Restaurant 
 Router.route('/restaurant')
     .post(middlewares.checkBodyNull, resService.createRas)
-    .get(verifyToken.verifyToken,resService.getAllRes)
+    .get(verifyToken.verifyToken, resService.getAllRes)
 Router.route('/restaurant/:id')
-    .delete(middlewares.checkID,verifyToken.verifyToken, resService.deleteRes)
-    .patch(middlewares.checkID,verifyToken.verifyToken, middlewares.checkBodyNull, resService.updateRes)
+    .delete(middlewares.checkID, verifyToken.verifyToken, resService.deleteRes)
+    .patch(middlewares.checkID, verifyToken.verifyToken, middlewares.checkBodyNull, resService.updateRes)
 
 // all router Users
 Router.route('/user')
-    .post(middlewares.checkBodyNull,userService.createUser) 
-    Router.route('/checkuser').post(userService.checkUser)
+    .post(middlewares.checkBodyNull, userService.createUser)
+Router.route('/checkuser')
+    .post(userService.checkUser)
+Router.route('/user/:id')
+    .get(middlewares.checkID, userService.getAllUserById)
+    .delete(middlewares.checkID, userService.deleteUser)
+Router.route('/user/reset/:id')
+    .patch(middlewares.checkID, userService.resetPassword)
 
 module.exports = Router;
 
