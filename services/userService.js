@@ -2,6 +2,38 @@ const errors = require('../utils/errors')
 const encrypt = require('../utils/encrypt');
 const db = require('../db/connection');
 
+exports.getUserById = (req, res, next) => {
+    let { id } = req.params;
+    id = Number(id); // Convert id to a number
+    if (Number.isNaN(id)) {
+        return errors.mapError(400, "Request parameter invalid type", next); // Return a 400 for invalid ID
+    }
+    try {
+        const sql = 'SELECT user_ID, user_name,user_phone,  user_role, user_img FROM Users WHERE user_ID = ?';
+        db.query(sql, [id], (error, results) => {
+            if (error) {
+                console.error('Error fetching user:', error.message);
+                return errors.mapError(500, "Internal server error", next);
+            }
+
+            if (results.length > 0) {
+                return res.status(200).json({
+                    status: "200",
+                    message: "Get Users successfully",
+                    data: results
+                });
+            } else {
+                return res.status(404).json({
+                    status: "404",
+                    message: `User with ID ${id} not found`
+                });
+            }
+        });
+    } catch (error) {
+        console.error('Unexpected error:', error.message);
+        return errors.mapError(500, "Internal server error", next);
+    }
+};
 
 exports.getAllUserById = (req, res, next) => {
     let { id } = req.params;
@@ -24,10 +56,35 @@ exports.getAllUserById = (req, res, next) => {
         })
 
     } catch (error) {
-        errors.mapError(500, 'Internal server error');
+        console.log(error.message);
+        errors.mapError(500, 'Internal server error', next);
     }
 
 
+}
+exports.editUser = (req, res, next) => {
+    let { id } = req.params;
+    id = Number(id);  // Convert id to a number
+    let body = req.body;
+    const {  user_name,user_phone,  user_role, user_img } = body;
+    if (Number.isNaN(id)) {
+        return errors.mapError(400, "Request parameter invalid type", next);  // Return a 400 for invalid ID
+    }
+    try {
+        const sql = `UPDATE Users SET user_name=?,user_phone=?,user_role=?,user_img=? WHERE user_ID =?`;
+        db.query(sql,[user_name,  user_phone, user_role, user_img,id],(error,results)=>{
+            if (error) {
+                console.error('Error inserting user:', error.message);
+                errors.mapError(500, "Internal server error", next);
+                return;
+            }
+            return res.status(200).json({ status: "200", message: 'Users edit successfully',data:results });
+
+        })
+    } catch (error) {
+        console.log(error.message);
+        errors.mapError(500, 'Internal server error', next);
+    }
 }
 exports.resetPassword = async (req, res, next) => {
     let { id } = req.params;
@@ -63,8 +120,8 @@ exports.resetPassword = async (req, res, next) => {
         });
 
     } catch (error) {
-        // Handle errors
-        return errors.mapError(500, "Internal server error.", next);
+        console.log(error.message);
+        errors.mapError(500, 'Internal server error', next);
     }
 };
 
@@ -85,8 +142,9 @@ exports.checkUser = (req, res, next) => {
             return res.status(200).json({ status: "200", message: `This ${user} is available` });
         });
     } catch (error) {
-   
-        errors.mapError(500, "Internal server error", next);
+
+        console.log(error.message);
+        errors.mapError(500, 'Internal server error', next);
     }
 }
 

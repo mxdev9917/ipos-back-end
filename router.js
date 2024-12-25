@@ -47,11 +47,15 @@ Router.route('/restaurant/:id')
 // all router Users
 Router.route('/user')
     .post(middlewares.checkBodyNull, userService.createUser)
+
 Router.route('/checkuser')
     .post(userService.checkUser)
 Router.route('/user/:id')
+    .patch(middlewares.checkBodyNull, middlewares.checkID, userService.editUser)
     .get(middlewares.checkID, userService.getAllUserById)
     .delete(middlewares.checkID, userService.deleteUser)
+Router.route('/getuser/:id')
+    .get(middlewares.checkID, userService.getUserById)
 Router.route('/user/reset/:id')
     .patch(middlewares.checkID, userService.resetPassword)
 
