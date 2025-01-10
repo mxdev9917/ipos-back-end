@@ -1,7 +1,7 @@
 const errors = require('../utils/errors')
 const encrypt = require('../utils/encrypt');
 const db = require('../db/connection');
-
+const DataTable = require('node-datatable');
 exports.getUserById = (req, res, next) => {
     let { id } = req.params;
     id = Number(id); // Convert id to a number
@@ -35,33 +35,90 @@ exports.getUserById = (req, res, next) => {
     }
 };
 
+// exports.getAllUserById = (req, res, next) => {
+//     let { id } = req.params;
+//     id = Number(id);  // Convert id to a number
+//     if (Number.isNaN(id)) {
+//         return errors.mapError(400, "Request parameter invalid type", next);  // Return a 400 for invalid ID
+//     }
+//     try {
+//         const sql = `SELECT user_ID,user_name, user, user_status, user_role, user_phone, user_img, 
+//              DATE_FORMAT(created_at, '%d-%m-%Y') AS created_at 
+//              FROM Users 
+//              WHERE restaurant_ID = ?;`
+//         db.query(sql, [id], (error, results) => {
+//             if (error) {
+//                 console.error('Error inserting user:', error.message);
+//                 errors.mapError(500, "Internal server error", next);
+//                 return;
+//             }
+//             return res.status(200).json({ status: "200", message: 'Get all Users successfully', data: results });
+//         })
+
+//     } catch (error) {
+//         console.log(error.message);
+//         errors.mapError(500, 'Internal server error', next);
+//     }
+
+
+//  }
+
+
 exports.getAllUserById = (req, res, next) => {
     let { id } = req.params;
     id = Number(id);  // Convert id to a number
     if (Number.isNaN(id)) {
         return errors.mapError(400, "Request parameter invalid type", next);  // Return a 400 for invalid ID
     }
+
+    // Get pagination and sorting parameters from the request
+    const { page, limit, sort_by, sort_order } = req.query;
+
+    // Set default values for pagination and sorting
+    const pageNumber = page ? Number(page) : 1;
+    const pageLimit = limit ? Number(limit) : 10;
     try {
-        const sql = `SELECT user_ID,user_name, user, user_status, user_role, user_phone, user_img, 
-             DATE_FORMAT(created_at, '%d-%m-%Y') AS created_at 
-             FROM Users 
-             WHERE restaurant_ID = ?;`
-        db.query(sql, [id], (error, results) => {
+        const sql = `
+            SELECT user_ID, user_name, user, user_status, user_role, user_phone, user_img, 
+            DATE_FORMAT(created_at, '%d-%m-%Y') AS created_at 
+            FROM Users 
+            WHERE restaurant_ID = ?
+            LIMIT ? OFFSET ?;`;
+
+        const offset = (pageNumber - 1) * pageLimit;  // Calculate the offset for pagination
+
+        db.query(sql, [id, pageLimit, offset], (error, results) => {
             if (error) {
-                console.error('Error inserting user:', error.message);
-                errors.mapError(500, "Internal server error", next);
-                return;
+                console.error('Error retrieving users:', error.message);
+                return errors.mapError(500, "Internal server error", next);
             }
-            return res.status(200).json({ status: "200", message: 'Get all Users successfully', data: results });
-        })
+
+            // Count total records for pagination
+            const countSql = `SELECT COUNT(*) as total FROM Users WHERE restaurant_ID = ?`;
+            db.query(countSql, [id], (countError, countResults) => {
+                if (countError) {
+                    console.error('Error counting users:', countError.message);
+                    return errors.mapError(500, "Internal server error", next);
+                }
+
+                const totalRecords = countResults[0].total;
+                const totalPages = Math.ceil(totalRecords / pageLimit);
+
+                return res.status(200).json({
+                    status: "200",
+                    message: 'Get all Users successfully',
+                    data: results,
+                   
+                });
+            });
+        });
 
     } catch (error) {
         console.log(error.message);
         errors.mapError(500, 'Internal server error', next);
     }
+};
 
-
-}
 exports.editUser = (req, res, next) => {
     let { id } = req.params;
     id = Number(id);  // Convert id to a number

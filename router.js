@@ -50,10 +50,10 @@ Router.route('/user')
 
 Router.route('/checkuser')
     .post(userService.checkUser)
-Router.route('/user/:id')
+    Router.route('/user/:id')
     .patch(middlewares.checkBodyNull, middlewares.checkID, userService.editUser)
     .get(middlewares.checkID, userService.getAllUserById)
-    .delete(middlewares.checkID, userService.deleteUser)
+    .delete(middlewares.checkID, userService.deleteUser);
 Router.route('/getuser/:id')
     .get(middlewares.checkID, userService.getUserById)
 Router.route('/user/reset/:id')
