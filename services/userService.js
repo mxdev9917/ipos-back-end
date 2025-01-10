@@ -61,7 +61,7 @@ exports.getUserById = (req, res, next) => {
 //     }
 
 
-//  }
+//   }
 
 
 exports.getAllUserById = (req, res, next) => {
@@ -72,11 +72,13 @@ exports.getAllUserById = (req, res, next) => {
     }
 
     // Get pagination and sorting parameters from the request
-    const { page, limit, sort_by, sort_order } = req.query;
+    const { page, limit} = req.query;
+
+    console.log(page)
 
     // Set default values for pagination and sorting
     const pageNumber = page ? Number(page) : 1;
-    const pageLimit = limit ? Number(limit) : 10;
+    const pageLimit = limit ? Number(limit) : 100;
     try {
         const sql = `
             SELECT user_ID, user_name, user, user_status, user_role, user_phone, user_img, 
@@ -101,8 +103,8 @@ exports.getAllUserById = (req, res, next) => {
                     return errors.mapError(500, "Internal server error", next);
                 }
 
-                const totalRecords = countResults[0].total;
-                const totalPages = Math.ceil(totalRecords / pageLimit);
+                // const totalRecords = countResults[0].total;
+                // const totalPages = Math.ceil(totalRecords / pageLimit);
 
                 return res.status(200).json({
                     status: "200",
