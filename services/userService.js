@@ -1,7 +1,6 @@
 const errors = require('../utils/errors')
 const encrypt = require('../utils/encrypt');
 const db = require('../db/connection');
-const DataTable = require('node-datatable');
 exports.getUserById = (req, res, next) => {
     let { id } = req.params;
     id = Number(id); // Convert id to a number
@@ -35,33 +34,6 @@ exports.getUserById = (req, res, next) => {
     }
 };
 
-// exports.getAllUserById = (req, res, next) => {
-//     let { id } = req.params;
-//     id = Number(id);  // Convert id to a number
-//     if (Number.isNaN(id)) {
-//         return errors.mapError(400, "Request parameter invalid type", next);  // Return a 400 for invalid ID
-//     }
-//     try {
-//         const sql = `SELECT user_ID,user_name, user, user_status, user_role, user_phone, user_img, 
-//              DATE_FORMAT(created_at, '%d-%m-%Y') AS created_at 
-//              FROM Users 
-//              WHERE restaurant_ID = ?;`
-//         db.query(sql, [id], (error, results) => {
-//             if (error) {
-//                 console.error('Error inserting user:', error.message);
-//                 errors.mapError(500, "Internal server error", next);
-//                 return;
-//             }
-//             return res.status(200).json({ status: "200", message: 'Get all Users successfully', data: results });
-//         })
-
-//     } catch (error) {
-//         console.log(error.message);
-//         errors.mapError(500, 'Internal server error', next);
-//     }
-
-
-//   }
 
 
 exports.getAllUserById = (req, res, next) => {
@@ -72,9 +44,9 @@ exports.getAllUserById = (req, res, next) => {
     }
 
     // Get pagination and sorting parameters from the request
-    const { page, limit} = req.query;
+    const { page, limit } = req.query;
 
-    console.log(page)
+
 
     // Set default values for pagination and sorting
     const pageNumber = page ? Number(page) : 1;
@@ -94,25 +66,14 @@ exports.getAllUserById = (req, res, next) => {
                 console.error('Error retrieving users:', error.message);
                 return errors.mapError(500, "Internal server error", next);
             }
+            return res.status(200).json({
+                status: "200",
+                message: 'Get all Users successfully',
+                data: results,
 
-            // Count total records for pagination
-            const countSql = `SELECT COUNT(*) as total FROM Users WHERE restaurant_ID = ?`;
-            db.query(countSql, [id], (countError, countResults) => {
-                if (countError) {
-                    console.error('Error counting users:', countError.message);
-                    return errors.mapError(500, "Internal server error", next);
-                }
-
-                // const totalRecords = countResults[0].total;
-                // const totalPages = Math.ceil(totalRecords / pageLimit);
-
-                return res.status(200).json({
-                    status: "200",
-                    message: 'Get all Users successfully',
-                    data: results,
-                   
-                });
             });
+
+            
         });
 
     } catch (error) {
@@ -125,19 +86,19 @@ exports.editUser = (req, res, next) => {
     let { id } = req.params;
     id = Number(id);  // Convert id to a number
     let body = req.body;
-    const {  user_name,user_phone,  user_role, user_img } = body;
+    const { user_name, user_phone, user_role, user_img } = body;
     if (Number.isNaN(id)) {
         return errors.mapError(400, "Request parameter invalid type", next);  // Return a 400 for invalid ID
     }
     try {
         const sql = `UPDATE Users SET user_name=?,user_phone=?,user_role=?,user_img=? WHERE user_ID =?`;
-        db.query(sql,[user_name,  user_phone, user_role, user_img,id],(error,results)=>{
+        db.query(sql, [user_name, user_phone, user_role, user_img, id], (error, results) => {
             if (error) {
                 console.error('Error inserting user:', error.message);
                 errors.mapError(500, "Internal server error", next);
                 return;
             }
-            return res.status(200).json({ status: "200", message: 'Users edit successfully',data:results });
+            return res.status(200).json({ status: "200", message: 'Users edit successfully', data: results });
 
         })
     } catch (error) {
@@ -161,8 +122,8 @@ exports.resetPassword = async (req, res, next) => {
         const queryPromise = new Promise((resolve, reject) => {
             db.query(sql, [newPassword, id], (error, results) => {
                 if (error) {
-                    console.log('Error updating owner status:', error);
-                    reject(new Error("Error updating owner status"));
+                    console.log('Error updating user status:', error);
+                    reject(new Error("Error updating user status"));
                 } else {
                     resolve(results);
                 }
@@ -183,6 +144,48 @@ exports.resetPassword = async (req, res, next) => {
         errors.mapError(500, 'Internal server error', next);
     }
 };
+
+exports.updateStatus = async (req, res, next) => {
+
+    let { id } = req.params;
+    id = Number(id);  // Convert id to a number
+
+    if (Number.isNaN(id)) {
+        return errors.mapError(400, "Request parameter invalid type", next);  // Return a 400 for invalid ID
+    }
+    let body = req.body;
+    const {  user_status } = body;
+    console.log(user_status);
+
+        try {
+            const sql = `UPDATE Users SET user_status=? WHERE user_ID =?`;
+            // Wrap db.query in a promise to use async/await
+            const queryPromise = new Promise((resolve, reject) => {
+                db.query(sql, [user_status, id], (error, results) => {
+                    if (error) {
+                        console.log('Error updating  status:', error);
+                        reject(new Error("Error updating  status"));
+                    } else {
+                        resolve(results);
+                    }
+                });
+            });
+
+            // Wait for the query to finish
+            const results = await queryPromise;
+
+            // Send success response
+            return res.status(200).json({
+                status: "200",
+                message: 'Update status successfully',
+            });
+
+        } catch (error) {
+            console.log(error.message);
+            errors.mapError(500, 'Internal server error', next);
+        }
+};
+
 
 
 exports.checkUser = (req, res, next) => {

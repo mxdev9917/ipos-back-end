@@ -5,6 +5,7 @@ const userAdminService = require('./services/userAdminService');
 const middlewares = require('./middlewares/middleware');
 const verifyToken = require('./utils/verifyToken');
 const resService = require('./services/restaurantService');
+const categoryService = require('./services/categorsService');
 // const { verifyToken } = require('./utils/encrypt');
 
 const Router = express.Router();
@@ -50,7 +51,7 @@ Router.route('/user')
 
 Router.route('/checkuser')
     .post(userService.checkUser)
-    Router.route('/user/:id')
+Router.route('/user/:id')
     .patch(middlewares.checkBodyNull, middlewares.checkID, userService.editUser)
     .get(middlewares.checkID, userService.getAllUserById)
     .delete(middlewares.checkID, userService.deleteUser);
@@ -58,7 +59,12 @@ Router.route('/getuser/:id')
     .get(middlewares.checkID, userService.getUserById)
 Router.route('/user/reset/:id')
     .patch(middlewares.checkID, userService.resetPassword)
+Router.route('/user/update/status/:id')
+    .patch(userService.updateStatus);
 
+
+Router.route('/restaurant/cetegory/all/:id')
+    .get(middlewares.checkID, categoryService.gatAllCategory)
 module.exports = Router;
 
 
