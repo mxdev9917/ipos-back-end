@@ -60,6 +60,7 @@ CREATE TABLE `Categories` (
   `category_ID` int AUTO_INCREMENT NOT NULL,
   `restaurant_ID` int NOT NULL,
   `category` varchar(100) NOT NULL,
+  `category_status` varchar(20) DEFAULT 'active',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `update_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`category_ID`),

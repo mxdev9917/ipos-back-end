@@ -63,8 +63,18 @@ Router.route('/user/update/status/:id')
     .patch(userService.updateStatus);
 
 
-Router.route('/restaurant/cetegory/all/:id')
+Router.route('/category/all/:id')
     .get(middlewares.checkID, categoryService.gatAllCategory)
+Router.route('/category')
+    .post(middlewares.checkBodyNull, categoryService.createCategory)
+
+Router.route('/category/:id')
+    .delete(middlewares.checkID, categoryService.deleteCategory)
+
+
+
+
+
 module.exports = Router;
 
 

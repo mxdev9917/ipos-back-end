@@ -66,14 +66,27 @@ exports.getAllUserById = (req, res, next) => {
                 console.error('Error retrieving users:', error.message);
                 return errors.mapError(500, "Internal server error", next);
             }
-            return res.status(200).json({
-                status: "200",
-                message: 'Get all Users successfully',
-                data: results,
-
-            });
-
             
+
+            // Count total records for pagination
+            const countSql = `SELECT COUNT(*) as total FROM Users WHERE restaurant_ID = ?`;
+            db.query(countSql, [id], (countError, countResults) => {
+                if (countError) {
+                    console.error('Error counting users:', countError.message);
+                    return errors.mapError(500, "Internal server error", next);
+                }
+
+                 const totalRecords = countResults[0].total;
+                // const totalPages = Math.ceil(totalRecords / pageLimit);
+
+                return res.status(200).json({
+                    status: "200",
+                    message: 'Get all Users successfully',
+                    total_item:totalRecords,
+                    data: results,
+    
+                });
+            });
         });
 
     } catch (error) {
