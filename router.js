@@ -69,7 +69,11 @@ Router.route('/category')
     .post(middlewares.checkBodyNull, categoryService.createCategory)
 
 Router.route('/category/:id')
+    .get(middlewares.checkID, categoryService.getCategoryById)
+    .patch(middlewares.checkBodyNull, middlewares.checkID, categoryService.editCategory)
     .delete(middlewares.checkID, categoryService.deleteCategory)
+Router.route('/category/status/:id')
+    .patch(middlewares.checkBodyNull, middlewares.checkID, categoryService.editStatusCategory)
 
 
 
