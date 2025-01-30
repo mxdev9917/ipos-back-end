@@ -6,6 +6,7 @@ const middlewares = require('./middlewares/middleware');
 const verifyToken = require('./utils/verifyToken');
 const resService = require('./services/restaurantService');
 const categoryService = require('./services/categorsService');
+const tableService = require('./services/tableSevice')
 // const { verifyToken } = require('./utils/encrypt');
 
 const Router = express.Router();
@@ -74,6 +75,16 @@ Router.route('/category/:id')
     .delete(middlewares.checkID, categoryService.deleteCategory)
 Router.route('/category/status/:id')
     .patch(middlewares.checkBodyNull, middlewares.checkID, categoryService.editStatusCategory)
+
+Router.route('/table/all/:id')
+    .get(middlewares.checkBodyNull, middlewares.checkID, tableService.getAlltable)
+Router.route('/table/status/:id')
+    .patch(middlewares.checkBodyNull, middlewares.checkID, tableService.editStatusTable)
+Router.route('/table/:id')
+    .delete(middlewares.checkID, tableService.deleteTable)
+    .patch(middlewares.checkBodyNull, middlewares.checkID, tableService.editTable)
+Router.route('/table')
+    .post(middlewares.checkBodyNull, middlewares.checkID, tableService.createTable)
 
 
 

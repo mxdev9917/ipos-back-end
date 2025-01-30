@@ -135,6 +135,9 @@ exports.editCategory = (req, res, next) => {
     }
 
 }
+
+
+
 exports.editStatusCategory = (req, res, next) => {
     let { id } = req.params;
     id = Number(id);  // Convert id to a number
