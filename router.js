@@ -6,7 +6,8 @@ const middlewares = require('./middlewares/middleware');
 const verifyToken = require('./utils/verifyToken');
 const resService = require('./services/restaurantService');
 const categoryService = require('./services/categorsService');
-const tableService = require('./services/tableSevice')
+const tableService = require('./services/tableSevice');
+const productService = require('./services/products');
 // const { verifyToken } = require('./utils/encrypt');
 
 const Router = express.Router();
@@ -85,6 +86,9 @@ Router.route('/table/:id')
     .patch(middlewares.checkBodyNull, middlewares.checkID, tableService.editTable)
 Router.route('/table')
     .post(middlewares.checkBodyNull, middlewares.checkID, tableService.createTable)
+
+Router.route('/product/all/:id')
+    .get(middlewares.checkID, productService.getAllProduct)
 
 
 

@@ -56,6 +56,17 @@ CREATE TABLE `Users` (
   CONSTRAINT `Users_ibfk_1` FOREIGN KEY (`restaurant_ID`) REFERENCES `Restaurants` (`restaurant_ID`) ON DELETE CASCADE
 );
 
+CREATE TABLE `Tables` (
+  `table_ID` int AUTO_INCREMENT NOT NULL,
+  `restaurant_ID` int NOT NULL,
+  `table_name` varchar(100) NOT NULL,
+  `table_status` varchar(20) DEFAULT 'empty',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`table_ID`),
+  FOREIGN KEY (`restaurant_ID`) REFERENCES `Restaurants` (`restaurant_ID`) ON DELETE CASCADE
+);
+
 CREATE TABLE `Categories` (
   `category_ID` int AUTO_INCREMENT NOT NULL,
   `restaurant_ID` int NOT NULL,
@@ -67,13 +78,17 @@ CREATE TABLE `Categories` (
   FOREIGN KEY (`restaurant_ID`) REFERENCES `Restaurants` (`restaurant_ID`) ON DELETE CASCADE
 );
 
-CREATE TABLE `Tables` (
-  `table_ID` int AUTO_INCREMENT NOT NULL,
-  `restaurant_ID` int NOT NULL,
-  `table_name` varchar(100) NOT NULL,
-  `table_status` varchar(20) DEFAULT 'empty',
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `update_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`table_ID`),
+CREATE TABLE `Products` (
+  `product_ID` INT AUTO_INCREMENT NOT NULL,
+  `category_ID` INT NOT NULL,
+  `restaurant_ID` INT NOT NULL,
+  `product_name` VARCHAR(100) NOT NULL,
+  `price` int NOT NULL,
+  `product_status` VARCHAR(20) DEFAULT 'active',
+  `product_img` VARCHAR(150),
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`product_ID`),
+  FOREIGN KEY (`category_ID`) REFERENCES `Categories` (`category_ID`) ON DELETE CASCADE,
   FOREIGN KEY (`restaurant_ID`) REFERENCES `Restaurants` (`restaurant_ID`) ON DELETE CASCADE
 );
