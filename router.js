@@ -91,7 +91,10 @@ Router.route('/product/all/:id')
     .get(middlewares.checkID, productService.getAllProduct)
 Router.route('/product')
 .post(middlewares.checkBodyNull,productService.createProduct)
-
+Router.route('/product/:id')
+.delete(middlewares.checkID,productService.deleteProduct)
+Router.route('/product/status/:id')
+.patch(middlewares.checkID,middlewares.checkBodyNull,productService.editStatusProduct)
 
 
 

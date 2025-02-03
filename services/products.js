@@ -102,89 +102,69 @@ exports.createProduct = (req, res, next) => {
     });
 };
 
+exports.deleteProduct=(req,res,next)=>{
 
-// exports.createProduct = (req, res, next) => {
+    try {
+        let { id } = req.params;
+        id = Number(id);  // Convert the 'id' to a number
+        if (Number.isNaN(id)) {
+            return errors.mapError(400, "Request parameter invalid type", next);  // Change 404 to 400 for invalid input
+        }
+        const sql = 'DELETE FROM Products WHERE product_ID = ?';
+        db.query(sql, [id], (error, results) => {
+            if (error) {
+                console.error('Error deleting Products:', error.message);
+                errors.mapError(500, "Internal server error", next);
+                return;
+            }
+            if (results.affectedRows === 0) {
+                return res.status(404).json({ message: 'Products not found' });
+            }
+            return res.status(200).json({
+                status: "200",
+                message: 'Products deleted successfully',
+                data: results
+            });
+        });
+    } catch (error) {
+        console.log(error.message);
+        errors.mapError(500, "Internal server error", next);
+    }
+
+    
+}
+
+exports.editStatusProduct = (req, res, next) => {
 
 
+    let { id } = req.params;
+    id = Number(id);  // Convert id to a number
+    let body = req.body;
+    const { product_status, updated_at } = body;
 
 
+console.log({ product_status, updated_at });
 
 
+    if (Number.isNaN(id)) {
+        return errors.mapError(400, "Request parameter invalid type", next);  // Return a 400 for invalid ID
+    }
+    try {
+        const sql = `UPDATE Products SET product_status=?,updated_at=? WHERE product_ID =?`;
+        db.query(sql, [product_status, updated_at, id], (error, results) => {
+            if (error) {
+                console.error('Error update Products:', error.message);
+                errors.mapError(500, "Internal server error", next);
+                return;
+            }
+            return res.status(200).json({ status: "200", message: 'Products edit successfully', data: results });
 
+        });
 
+    } catch (error) {
+        console.log(error.message);
+        errors.mapError(500, 'Internal server error', next);
+    }
 
-// // const {category_ID, restaurant_ID, product_name, price , product_img}=req.body;
+}
 
-// // console.log(category_ID, restaurant_ID, product_name, price , product_img);
-
-
-//     // Configure Multer for file upload
-// //     const storage = multer.diskStorage({
-// //         destination: './uploads/',
-// //         filename: (req, file, cb) => {
-// //             cb(null, Date.now() + path.extname(file.originalname));
-// //         }
-// //     });
-// //     const upload = multer({ storage: storage });
-// //     // Insert product API with image upload
-// //     app.post('/products', upload.single('product_img'), (req, res) => {
-// //         const { category_ID, restaurant_ID, product_name, price, product_status } = req.body;
-// //         const product_img = req.file ? `/uploads/${req.file.filename}` : null;
-
-// //         if (!category_ID || !restaurant_ID || !product_name || !price) {
-// //             return res.status(400).json({ error: 'Required fields are missing' });
-// //         }
-// //         const sql = `INSERT INTO Products (category_ID, restaurant_ID, product_name, price, product_img)
-// //         VALUES (?, ?, ?, ?, ?, ?)`;
-
-// //         const values = [category_ID, restaurant_ID, product_name, price , product_img];
-// //         db.query(sql, values, (err, result) => {
-// //             if (err) {
-// //                 console.error('Error inserting product:', err);
-// //                 return res.status(500).json({ error: 'Database error' });
-// //             }
-// //             res.status(201).json({ message: 'Product added successfully', product_ID: result.insertId, product_img });
-// //         });
-// //     });
-//  }
-// exports.createProduct = (req, res, next) => {
-
-//     let body = req.body;
-//     console.log(body)
-//     const { category_ID, restaurant_ID, product_name, price, product_img } = req.body;
-
-//     // if (!category_ID || !restaurant_ID || !product_name || !price) {
-//     //     return res.status(400).json({ message: "All required fields must be provided." });
-//     // }
-
-//     // try {
-//     //     // Check if product name already exists for the same restaurant
-//     //     const checkSql = `SELECT product_name FROM Products WHERE product_name = ? AND restaurant_ID = ?`;
-//     //     db.query(checkSql, [product_name, restaurant_ID], (error, results) => {
-//     //         if (error) {
-//     //             console.error("Error fetching product:", error.message);
-//     //             return errors.mapError(500, "Internal server error", next);
-//     //         }
-//     //         if (results.length > 0) {
-//     //             return res.status(409).json({ message: `Product '${results[0].product_name}' already exists.` });
-//     //         }
-
-//     //         // Insert new product
-//     //         const insertSql = `INSERT INTO Products (category_ID, restaurant_ID, product_name, price, product_img) VALUES (?, ?, ?, ?, ?)`;
-//     //         db.query(insertSql, [category_ID, restaurant_ID, product_name, price, product_img || null], (error, results) => {
-//     //             if (error) {
-//     //                 console.error("Error inserting product:", error.message);
-//     //                 return errors.mapError(500, "Internal server error", next);
-//     //             }
-//     //             return res.status(201).json({
-//     //                 status: "201",
-//     //                 message: "Product created successfully",
-//     //                 data: { product_ID: results.insertId, category_ID, restaurant_ID, product_name, price, product_img },
-//     //             });
-//     //         });
-//     //     });
-//     // } catch (error) {
-//     //     console.error("Unexpected error:", error.message);
-//     //     errors.mapError(500, "Internal server error", next);
-//     // }
-// };

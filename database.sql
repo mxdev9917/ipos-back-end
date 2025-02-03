@@ -92,3 +92,9 @@ CREATE TABLE `Products` (
   FOREIGN KEY (`category_ID`) REFERENCES `Categories` (`category_ID`) ON DELETE CASCADE,
   FOREIGN KEY (`restaurant_ID`) REFERENCES `Restaurants` (`restaurant_ID`) ON DELETE CASCADE
 );
+
+CREATE TABLE `PathImg`(
+  pathImg_ID INT AUTO_INCREMENT NOT NULL,
+  pathImg_name VARCHAR(100),
+   PRIMARY KEY (`pathImg_ID`),
+);
