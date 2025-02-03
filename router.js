@@ -89,6 +89,8 @@ Router.route('/table')
 
 Router.route('/product/all/:id')
     .get(middlewares.checkID, productService.getAllProduct)
+Router.route('/product')
+.post(middlewares.checkBodyNull,productService.createProduct)
 
 
 
