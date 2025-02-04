@@ -51,6 +51,38 @@ exports.getAllProduct = (req, res, next) => {
     }
 };
 
+exports.getByIdProduct = (req, res, next) => {
+    let { id } = req.params;
+    id = Number(id);  // Convert id to a number
+
+    if (Number.isNaN(id)) {
+        return errors.mapError(400, "Request parameter invalid type", next);
+    }
+
+    try {
+        const sql = `
+            SELECT p.product_name,p.price,c.category_ID, c.category ,p.product_img
+            FROM Products p
+            JOIN Categories c ON c.category_ID = p.category_ID
+            WHERE p.product_ID = ?
+        `;
+
+        db.query(sql, [id], (error, results) => {
+            if (error) {
+                console.error("Error fetching Products:", error.message);
+                errors.mapError(500, "Internal server error", next);
+                return;
+            }
+            return res.status(200).json({ status: "200", message: "Product fetched successfully", data: results });
+        });
+
+    } catch (error) {
+        console.log(error.message);
+        errors.mapError(500, "Internal server error", next);
+    }
+};
+
+
 exports.createProduct = (req, res, next) => {
     upload.single("product_img")(req, res, (err) => {
         if (err) {
@@ -102,7 +134,67 @@ exports.createProduct = (req, res, next) => {
     });
 };
 
-exports.deleteProduct=(req,res,next)=>{
+
+exports.editProduct = (req, res, next) => {
+    upload.single("product_img")(req, res, (err) => {
+        if (err) {
+            return res.status(400).json({ message: err.message });
+        }
+
+        const { product_ID, category_ID, product_name, price } = req.body;
+        const product_img = req.file ? `/images/product_img/${req.file.filename}` : null; // ✅ Fixed path
+        try {
+            
+                if (product_img != null) {
+                    const updateSql = `UPDATE Products 
+                    SET category_ID = ?, 
+                        product_name = ?, 
+                        price = ?, 
+                        product_img = ? 
+                    WHERE product_ID = ?`;
+                    db.query(updateSql, [category_ID, product_name, price, product_img, product_ID], (error, results) => {
+                        if (error) {
+                            console.error("Error updating product:", error.message);
+                            return errors.mapError(500, "Internal server error", next);
+                        }
+                        return res.status(200).json({
+                            status: "200",
+                            message: "Product updated successfully",
+                        });
+                    });
+                } else {
+                    const updateSql = `UPDATE Products 
+                    SET category_ID = ?, 
+                        product_name = ?, 
+                        price = ?
+                    WHERE product_ID = ?`;
+                    db.query(updateSql, [category_ID, product_name, price, product_ID], (error, results) => {
+                        if (error) {
+                            console.error("Error updating product:", error.message);
+                            return errors.mapError(500, "Internal server error", next);
+                        }
+                        return res.status(200).json({
+                            status: "200",
+                            message: "Product updated successfully",
+                           
+                        });
+                    });
+                }
+
+
+
+
+        } catch (error) {
+            console.error("Unexpected error:", error.message);
+            errors.mapError(500, "Internal server error", next);
+        }
+    });
+
+
+};
+
+
+exports.deleteProduct = (req, res, next) => {
 
     try {
         let { id } = req.params;
@@ -131,7 +223,7 @@ exports.deleteProduct=(req,res,next)=>{
         errors.mapError(500, "Internal server error", next);
     }
 
-    
+
 }
 
 exports.editStatusProduct = (req, res, next) => {
@@ -143,7 +235,7 @@ exports.editStatusProduct = (req, res, next) => {
     const { product_status, updated_at } = body;
 
 
-console.log({ product_status, updated_at });
+    console.log({ product_status, updated_at });
 
 
     if (Number.isNaN(id)) {

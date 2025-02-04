@@ -69,13 +69,14 @@ Router.route('/category/all/:id')
     .get(middlewares.checkID, categoryService.gatAllCategory)
 Router.route('/category')
     .post(middlewares.checkBodyNull, categoryService.createCategory)
-
+   
 Router.route('/category/:id')
     .get(middlewares.checkID, categoryService.getCategoryById)
     .patch(middlewares.checkBodyNull, middlewares.checkID, categoryService.editCategory)
     .delete(middlewares.checkID, categoryService.deleteCategory)
 Router.route('/category/status/:id')
     .patch(middlewares.checkBodyNull, middlewares.checkID, categoryService.editStatusCategory)
+    .get(middlewares.checkBodyNull, categoryService.getCategoryByStatus)
 
 Router.route('/table/all/:id')
     .get(middlewares.checkBodyNull, middlewares.checkID, tableService.getAlltable)
@@ -90,11 +91,13 @@ Router.route('/table')
 Router.route('/product/all/:id')
     .get(middlewares.checkID, productService.getAllProduct)
 Router.route('/product')
-.post(middlewares.checkBodyNull,productService.createProduct)
+    .post(middlewares.checkBodyNull, productService.createProduct)
+    .patch(middlewares.checkBodyNull,middlewares.checkID,productService.editProduct)
 Router.route('/product/:id')
-.delete(middlewares.checkID,productService.deleteProduct)
+    .delete(middlewares.checkID, productService.deleteProduct)
+    .get(middlewares.checkID,productService.getByIdProduct)
 Router.route('/product/status/:id')
-.patch(middlewares.checkID,middlewares.checkBodyNull,productService.editStatusProduct)
+    .patch(middlewares.checkID, middlewares.checkBodyNull, productService.editStatusProduct)
 
 
 

@@ -76,6 +76,35 @@ exports.getCategoryById = (req, res, next) => {
 
 
 }
+exports.getCategoryByStatus = (req, res, next) => {
+    let { id } = req.params;
+    id = Number(id);  // Convert id to a number
+    if (Number.isNaN(id)) {
+        return errors.mapError(400, "Request parameter invalid type", next);  // Return a 400 for invalid ID
+    }
+    const status = "active"
+    try {
+        const checkSql = `SELECT category_ID, category  FROM Categories WHERE  restaurant_ID = ? AND category_status =? `;
+        db.query(checkSql, [id,status], (error, results) => {
+            if (error) {
+                console.error('Error fetching category:', error.message);
+                errors.mapError(500, "Internal server error", next);
+                return;
+            }
+            if (results.length <= 0) {
+                return res.status(409).json({ message: `Not found Category Id` });
+            }
+            return res.status(200).json({ status: "200", message: 'Category fetching successfullyccccccc', data: results });
+
+        });
+
+    } catch (error) {
+        console.log(error.message);
+        errors.mapError(500, 'Internal server error', next);
+    }
+
+
+}
 
 exports.createCategory = (req, res, next) => {
     let body = req.body;
