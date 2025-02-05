@@ -78,17 +78,17 @@ CREATE TABLE `Categories` (
   FOREIGN KEY (`restaurant_ID`) REFERENCES `Restaurants` (`restaurant_ID`) ON DELETE CASCADE
 );
 
-CREATE TABLE `Products` (
-  `product_ID` INT AUTO_INCREMENT NOT NULL,
+CREATE TABLE `Foods` (
+  `food_ID` INT AUTO_INCREMENT NOT NULL,
   `category_ID` INT NOT NULL,
   `restaurant_ID` INT NOT NULL,
-  `product_name` VARCHAR(100) NOT NULL,
+  `food_name` VARCHAR(100) NOT NULL,
   `price` int NOT NULL,
-  `product_status` VARCHAR(20) DEFAULT 'active',
-  `product_img` VARCHAR(150),
+  `food_status` VARCHAR(20) DEFAULT 'active',
+  `food_img` VARCHAR(150),
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`product_ID`),
+  PRIMARY KEY (`food_ID`),
   FOREIGN KEY (`category_ID`) REFERENCES `Categories` (`category_ID`) ON DELETE CASCADE,
   FOREIGN KEY (`restaurant_ID`) REFERENCES `Restaurants` (`restaurant_ID`) ON DELETE CASCADE
 );

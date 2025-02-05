@@ -7,7 +7,7 @@ const verifyToken = require('./utils/verifyToken');
 const resService = require('./services/restaurantService');
 const categoryService = require('./services/categorsService');
 const tableService = require('./services/tableSevice');
-const productService = require('./services/products');
+const foodService = require('./services/FoodService');
 // const { verifyToken } = require('./utils/encrypt');
 
 const Router = express.Router();
@@ -88,16 +88,16 @@ Router.route('/table/:id')
 Router.route('/table')
     .post(middlewares.checkBodyNull, middlewares.checkID, tableService.createTable)
 
-Router.route('/product/all/:id')
-    .get(middlewares.checkID, productService.getAllProduct)
-Router.route('/product')
-    .post(middlewares.checkBodyNull, productService.createProduct)
-    .patch(middlewares.checkBodyNull,middlewares.checkID,productService.editProduct)
-Router.route('/product/:id')
-    .delete(middlewares.checkID, productService.deleteProduct)
-    .get(middlewares.checkID,productService.getByIdProduct)
-Router.route('/product/status/:id')
-    .patch(middlewares.checkID, middlewares.checkBodyNull, productService.editStatusProduct)
+Router.route('/food/all/:id')
+    .get(middlewares.checkID, foodService.getAllfood)
+Router.route('/food')
+    .post(middlewares.checkBodyNull, foodService.createfood)
+    .patch(middlewares.checkBodyNull,middlewares.checkID,foodService.editfood)
+Router.route('/food/:id')
+    .delete(middlewares.checkID, foodService.deletefood)
+    .get(middlewares.checkID,foodService.getByIdfood)
+Router.route('/food/status/:id')
+    .patch(middlewares.checkID, middlewares.checkBodyNull, foodService.editStatusfood)
 
 
 

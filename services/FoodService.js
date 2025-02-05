@@ -3,7 +3,7 @@ const encrypt = require('../utils/encrypt');
 const db = require('../db/connection');
 const upload = require('../utils/multerConfig');
 
-exports.getAllProduct = (req, res, next) => {
+exports.getAllfood = (req, res, next) => {
     let { id } = req.params;
     id = Number(id);  // Convert id to a number
     if (Number.isNaN(id)) {
@@ -15,30 +15,30 @@ exports.getAllProduct = (req, res, next) => {
     const pageLimit = limit ? Number(limit) : 100;
 
     try {
-        const sql = `SELECT p.product_ID, p.product_name, c.category, p.product_status, p.price, p.product_img, p.created_at
+        const sql = `SELECT p.food_ID, p.food_name, c.category, p.food_status, p.price, p.food_img, p.created_at
                     FROM Restaurants r
                     JOIN Categories c ON r.restaurant_ID = c.restaurant_ID
-                    JOIN Products p ON c.category_ID = p.category_ID
+                    JOIN Foods p ON c.category_ID = p.category_ID
                     WHERE r.restaurant_ID = ? LIMIT ? OFFSET ?;`;
 
         const offset = (pageNumber - 1) * pageLimit;
 
         db.query(sql, [id, pageLimit, offset], (error, results) => {
             if (error) {
-                console.error('Error fetching Products:', error.message);
+                console.error('Error fetching Foods:', error.message);
                 return errors.mapError(500, "Internal server error", next);
             }
 
-            const countSql = `SELECT COUNT(*) as total FROM Products p WHERE p.restaurant_ID = ?;`;
+            const countSql = `SELECT COUNT(*) as total FROM Foods p WHERE p.restaurant_ID = ?;`;
             db.query(countSql, [id], (countError, countResults) => {
                 if (countError) {
-                    console.error('Error counting Products:', countError.message); // Corrected this
+                    console.error('Error counting Foods:', countError.message); // Corrected this
                     return errors.mapError(500, "Internal server error", next);
                 }
                 const totalRecords = countResults[0].total;
                 return res.status(200).json({
                     status: "200",
-                    message: 'Get all Products successfully',
+                    message: 'Get all Foods successfully',
                     total_item: totalRecords,
                     data: results,
                 });
@@ -51,7 +51,7 @@ exports.getAllProduct = (req, res, next) => {
     }
 };
 
-exports.getByIdProduct = (req, res, next) => {
+exports.getByIdfood = (req, res, next) => {
     let { id } = req.params;
     id = Number(id);  // Convert id to a number
 
@@ -61,19 +61,19 @@ exports.getByIdProduct = (req, res, next) => {
 
     try {
         const sql = `
-            SELECT p.product_name,p.price,c.category_ID, c.category ,p.product_img
-            FROM Products p
+            SELECT p.food_name,p.price,c.category_ID, c.category ,p.food_img
+            FROM Foods p
             JOIN Categories c ON c.category_ID = p.category_ID
-            WHERE p.product_ID = ?
+            WHERE p.food_ID = ?
         `;
 
         db.query(sql, [id], (error, results) => {
             if (error) {
-                console.error("Error fetching Products:", error.message);
+                console.error("Error fetching Foods:", error.message);
                 errors.mapError(500, "Internal server error", next);
                 return;
             }
-            return res.status(200).json({ status: "200", message: "Product fetched successfully", data: results });
+            return res.status(200).json({ status: "200", message: "food fetched successfully", data: results });
         });
 
     } catch (error) {
@@ -83,46 +83,46 @@ exports.getByIdProduct = (req, res, next) => {
 };
 
 
-exports.createProduct = (req, res, next) => {
-    upload.single("product_img")(req, res, (err) => {
+exports.createfood = (req, res, next) => {
+    upload.single("food_img")(req, res, (err) => {
         if (err) {
             return res.status(400).json({ message: err.message });
         }
 
-        const { category_ID, restaurant_ID, product_name, price } = req.body;
-        const product_img = req.file ? `/images/product_img/${req.file.filename}` : null; // ✅ Fixed path
+        const { category_ID, restaurant_ID, food_name, price } = req.body;
+        const food_img = req.file ? `/images/food_img/${req.file.filename}` : null; // ✅ Fixed path
 
-        if (!category_ID || !restaurant_ID || !product_name || !price) {
+        if (!category_ID || !restaurant_ID || !food_name || !price) {
             return res.status(400).json({ message: "All required fields must be provided." });
         }
 
         try {
-            const checkSql = `SELECT product_name FROM Products WHERE product_name = ? AND restaurant_ID = ?`;
-            db.query(checkSql, [product_name, restaurant_ID], (error, results) => {
+            const checkSql = `SELECT food_name FROM Foods WHERE food_name = ? AND restaurant_ID = ?`;
+            db.query(checkSql, [food_name, restaurant_ID], (error, results) => {
                 if (error) {
-                    console.error("Error fetching product:", error.message);
+                    console.error("Error fetching food:", error.message);
                     return errors.mapError(500, "Internal server error", next);
                 }
                 if (results.length > 0) {
-                    return res.status(409).json({ message: `Product '${results[0].product_name}' already exists.` });
+                    return res.status(409).json({ message: `food '${results[0].food_name}' already exists.` });
                 }
 
-                const insertSql = `INSERT INTO Products (category_ID, restaurant_ID, product_name, price, product_img) VALUES (?, ?, ?, ?, ?)`;
-                db.query(insertSql, [category_ID, restaurant_ID, product_name, price, product_img], (error, results) => {
+                const insertSql = `INSERT INTO Foods (category_ID, restaurant_ID, food_name, price, food_img) VALUES (?, ?, ?, ?, ?)`;
+                db.query(insertSql, [category_ID, restaurant_ID, food_name, price, food_img], (error, results) => {
                     if (error) {
-                        console.error("Error inserting product:", error.message);
+                        console.error("Error inserting food:", error.message);
                         return errors.mapError(500, "Internal server error", next);
                     }
                     return res.status(201).json({
                         status: "201",
-                        message: "Product created successfully",
+                        message: "food created successfully",
                         data: {
-                            product_ID: results.insertId,
+                            food_ID: results.insertId,
                             category_ID,
                             restaurant_ID,
-                            product_name,
+                            food_name,
                             price,
-                            product_img,
+                            food_img,
                         },
                     });
                 });
@@ -135,47 +135,47 @@ exports.createProduct = (req, res, next) => {
 };
 
 
-exports.editProduct = (req, res, next) => {
-    upload.single("product_img")(req, res, (err) => {
+exports.editfood = (req, res, next) => {
+    upload.single("food_img")(req, res, (err) => {
         if (err) {
             return res.status(400).json({ message: err.message });
         }
 
-        const { product_ID, category_ID, product_name, price } = req.body;
-        const product_img = req.file ? `/images/product_img/${req.file.filename}` : null; // ✅ Fixed path
+        const { food_ID, category_ID, food_name, price } = req.body;
+        const food_img = req.file ? `/images/food_img/${req.file.filename}` : null; // ✅ Fixed path
         try {
             
-                if (product_img != null) {
-                    const updateSql = `UPDATE Products 
+                if (food_img != null) {
+                    const updateSql = `UPDATE Foods 
                     SET category_ID = ?, 
-                        product_name = ?, 
+                        food_name = ?, 
                         price = ?, 
-                        product_img = ? 
-                    WHERE product_ID = ?`;
-                    db.query(updateSql, [category_ID, product_name, price, product_img, product_ID], (error, results) => {
+                        food_img = ? 
+                    WHERE food_ID = ?`;
+                    db.query(updateSql, [category_ID, food_name, price, food_img, food_ID], (error, results) => {
                         if (error) {
-                            console.error("Error updating product:", error.message);
+                            console.error("Error updating food:", error.message);
                             return errors.mapError(500, "Internal server error", next);
                         }
                         return res.status(200).json({
                             status: "200",
-                            message: "Product updated successfully",
+                            message: "food updated successfully",
                         });
                     });
                 } else {
-                    const updateSql = `UPDATE Products 
+                    const updateSql = `UPDATE Foods 
                     SET category_ID = ?, 
-                        product_name = ?, 
+                        food_name = ?, 
                         price = ?
-                    WHERE product_ID = ?`;
-                    db.query(updateSql, [category_ID, product_name, price, product_ID], (error, results) => {
+                    WHERE food_ID = ?`;
+                    db.query(updateSql, [category_ID, food_name, price, food_ID], (error, results) => {
                         if (error) {
-                            console.error("Error updating product:", error.message);
+                            console.error("Error updating food:", error.message);
                             return errors.mapError(500, "Internal server error", next);
                         }
                         return res.status(200).json({
                             status: "200",
-                            message: "Product updated successfully",
+                            message: "food updated successfully",
                            
                         });
                     });
@@ -194,7 +194,7 @@ exports.editProduct = (req, res, next) => {
 };
 
 
-exports.deleteProduct = (req, res, next) => {
+exports.deletefood = (req, res, next) => {
 
     try {
         let { id } = req.params;
@@ -202,19 +202,19 @@ exports.deleteProduct = (req, res, next) => {
         if (Number.isNaN(id)) {
             return errors.mapError(400, "Request parameter invalid type", next);  // Change 404 to 400 for invalid input
         }
-        const sql = 'DELETE FROM Products WHERE product_ID = ?';
+        const sql = 'DELETE FROM Foods WHERE food_ID = ?';
         db.query(sql, [id], (error, results) => {
             if (error) {
-                console.error('Error deleting Products:', error.message);
+                console.error('Error deleting Foods:', error.message);
                 errors.mapError(500, "Internal server error", next);
                 return;
             }
             if (results.affectedRows === 0) {
-                return res.status(404).json({ message: 'Products not found' });
+                return res.status(404).json({ message: 'Foods not found' });
             }
             return res.status(200).json({
                 status: "200",
-                message: 'Products deleted successfully',
+                message: 'Foods deleted successfully',
                 data: results
             });
         });
@@ -226,30 +226,30 @@ exports.deleteProduct = (req, res, next) => {
 
 }
 
-exports.editStatusProduct = (req, res, next) => {
+exports.editStatusfood = (req, res, next) => {
 
 
     let { id } = req.params;
     id = Number(id);  // Convert id to a number
     let body = req.body;
-    const { product_status, updated_at } = body;
+    const { food_status, updated_at } = body;
 
 
-    console.log({ product_status, updated_at });
+    console.log({ food_status, updated_at });
 
 
     if (Number.isNaN(id)) {
         return errors.mapError(400, "Request parameter invalid type", next);  // Return a 400 for invalid ID
     }
     try {
-        const sql = `UPDATE Products SET product_status=?,updated_at=? WHERE product_ID =?`;
-        db.query(sql, [product_status, updated_at, id], (error, results) => {
+        const sql = `UPDATE Foods SET food_status=?,updated_at=? WHERE food_ID =?`;
+        db.query(sql, [food_status, updated_at, id], (error, results) => {
             if (error) {
-                console.error('Error update Products:', error.message);
+                console.error('Error update Foods:', error.message);
                 errors.mapError(500, "Internal server error", next);
                 return;
             }
-            return res.status(200).json({ status: "200", message: 'Products edit successfully', data: results });
+            return res.status(200).json({ status: "200", message: 'Foods edit successfully', data: results });
 
         });
 
