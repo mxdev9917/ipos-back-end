@@ -2,6 +2,8 @@ CREATE TABLE `Restaurants` (
   `restaurant_ID` int NOT NULL AUTO_INCREMENT,
   `owner_ID` int NOT NULL,
   `restaurant_name` varchar(50) NOT NULL,
+  `restaurant_user` varchar(20) NOT NULL,
+  `restaurant_password` varchar(255) NOT NULL,
   `restaurant_status` varchar(20) DEFAULT 'pending',
   `restaurant_img` varchar(255) DEFAULT NULL,
   `restaurant_expiry_date` timestamp NULL DEFAULT NULL,

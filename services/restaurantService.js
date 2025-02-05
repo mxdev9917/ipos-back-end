@@ -1,6 +1,7 @@
 const db = require('../db/connection');
 const errors = require('../utils/errors');
 const calculateDate = require('../utils/calculateDate')
+const encrypt = require('../utils/encrypt');
 
 // {
 //     "owner_ID": "17",
@@ -51,7 +52,7 @@ exports.createRas = async (req, res, next) => {
     let body = req.body;
     console.log(body)
     try {
-        const { owner_ID, restaurant_name, restaurant_img, qty, current_type } = req.body;
+        const { owner_ID, restaurant_name, restaurant_user, restaurant_password, restaurant_img, qty, current_type } = req.body;
         // Validate qty
         const quantity = Number(qty);
         if (Number.isNaN(quantity)) {
@@ -74,16 +75,16 @@ exports.createRas = async (req, res, next) => {
         if (!restaurant_name || typeof restaurant_name !== "string") {
             return errors.mapError(400, "Restaurant name is required and must be a string.", next);
         }
-        const sql = `INSERT INTO Restaurants (owner_ID, restaurant_name, restaurant_img, restaurant_expiry_date)
-                     VALUES (?, ?, ?, ?)`;
-        db.query(sql, [ownerId, restaurant_name, restaurant_img, expiryDate], (error) => {
+        const sql = `INSERT INTO Restaurants (owner_ID, restaurant_name,restaurant_user,restaurant_password, restaurant_img, restaurant_expiry_date)
+                     VALUES (?, ?,?, ?, ?, ?)`;
+        db.query(sql, [ownerId, restaurant_name, restaurant_user, await encrypt.hashPassword(restaurant_password), restaurant_img, expiryDate], (error) => {
             if (error) {
                 console.error('Database error:', error.message);
                 return errors.mapError(500, "Internal server error. Could not create restaurant.", next);
             }
             const sql = `
             SELECT O.owner_ID, O.owner_name, O.owner_email, O.owner_phone, O.owner_status, O.owner_email,O.owner_password, DATE_FORMAT(O.created_at, '%d-%m-%Y') AS owner_date,
-                   R.restaurant_ID, R.restaurant_name, R.restaurant_status, R.restaurant_img, DATE_FORMAT(R.restaurant_expiry_date, '%d-%m-%Y') AS restaurant_Expiry_date, 
+                   R.restaurant_ID, R.restaurant_name,R.restaurant_user,R.restaurant_password, R.restaurant_status, R.restaurant_img, DATE_FORMAT(R.restaurant_expiry_date, '%d-%m-%Y') AS restaurant_Expiry_date, 
                    DATE_FORMAT(R.created_at, '%d-%m-%Y') AS restaurant_created_at, R.restaurant_expiry_date AS expiry_date
             FROM Owners O
             LEFT JOIN Restaurants R ON O.owner_ID = R.owner_ID
@@ -94,6 +95,13 @@ exports.createRas = async (req, res, next) => {
                     errors.mapError(500, "Internal server error", next);
                     return;
                 }
+                // create token
+                const token = await encrypt.generateJWT({
+                    email: results[0].owner_email,
+                    user_type: 'customer',
+                    owner_id: results[0].owner_ID
+                });
+
                 const ownerData = {
                     owner_id: results[0].owner_ID,
                     owner_name: results[0].owner_name,
@@ -102,8 +110,10 @@ exports.createRas = async (req, res, next) => {
                     owner_status: results[0].owner_status,
                     owner_date: results[0].owner_date,
                 };
+
                 const now = new Date();
                 const restaurants = results.map(row => {
+                    if (!row.restaurant_ID) return null;
                     const expiryDate = new Date(row.expiry_date);
                     const expiryStatus = expiryDate < now ? "Expired" : row.restaurant_status;
                     return {
@@ -115,9 +125,22 @@ exports.createRas = async (req, res, next) => {
                         restaurant_created_at: row.restaurant_created_at
                     };
                 });
+
+                if (results[0].restaurant_ID == undefined) { //owner is not restaurant yet
+                    return res.status(200).json({
+                        status: "200",
+                        token: token,
+                        message: "Success",
+                        data: {
+                            owner: ownerData,
+                        },
+                        restaurantsMessage: "restaurant not found",
+                    });
+                }
                 return res.status(200).json({
                     status: "200",
-                    message: "Restaurant created successfully.",
+                    token: token,
+                    message: "Success",
                     data: {
                         owner: ownerData,
                         restaurants: restaurants
@@ -201,8 +224,58 @@ exports.deleteRes = (req, res, next) => {
         }
         res.status(200).json({ status: "200", message: "user admin deleted successfuly", data: results });
     });
+}
+
+exports.signInRes = (req, res, next) => {
+    console.log('sing res');
+
+    try {
+        let body = req.body;
+        const { restaurant_user, restaurant_password } = body;
+        const sql = 'SELECT * FROM Restaurants WHERE restaurant_user = ?';
+        db.query(sql, [restaurant_user], async (error, results) => {
+            if (error) {
+                console.error('Error fetching Restaurants:', error.message);
+                errors.mapError(500, "Internal server error", next);
+                return;
+            }
+            if (results.length === 0) {
+                return errors.mapError(404, `not found is ${restaurant_user} `, next);
+            } else {
+                const isPwdValid = await encrypt.comparePasswrod(restaurant_password, results[0].restaurant_password)
+                if (!isPwdValid) {
+                    return errors.mapError(401, 'Password invlalid', next);
+                } else {
+                    const isStatusValid = results[0].restaurant_status === 'lock'
+                    if (isStatusValid) {
+                        return errors.mapError(403, `this user is ${results[0].restaurant_status}`, next);
+                    }
+                    else {
+                        // create token
+                        const token = await encrypt.generateJWT({
+                            restaurant_ID: results[0].restaurant_ID,
+                            user_type: 'restaurant'
+                        });
+                        const restauranData = {
+                            restaurant_ID: results[0].restaurant_ID,
+                            restaurant_name:results[0].restaurant_name,
+                            restaurant_expiry_date: results[0].restaurant_expiry_date,
+                            restaurant_img: results[0].restaurant_img,
+                        };
+                        return res.status(200).json({ status: "200", message: 'success', token: token ,data:restauranData });
+
+                    }
+                }
+            }
+        });
 
 
+
+    } catch (error) {
+        console.log(error.message);
+        errors.mapError(500, 'Internal sever error', next);
+
+    }
 
 
 }

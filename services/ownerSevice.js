@@ -33,7 +33,8 @@ exports.signInOwner = (req, res, next) => {
                         const isStatusValid = results[0].owner_status === 'lock'
                         if (isStatusValid) {
                             return errors.mapError(403, `this user is ${results[0].owner_status}`, next);
-                        } else {
+                        } else 
+                        {
                             // create token
                             const token = await encrypt.generateJWT({
                                 email: results[0].owner_email,

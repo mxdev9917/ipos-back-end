@@ -40,8 +40,10 @@ Router.route('/user-admin/:id')
     .delete(middlewares.checkID, verifyToken.verifyToken, userAdminService.deleteUserAdmin)
 
 // all router Restaurant 
+Router.route('/restaurant/signin')
+    .post(middlewares.checkBodyNull, resService.signInRes)
 Router.route('/restaurant')
-    .post(middlewares.checkBodyNull, resService.createRas)
+    .post(middlewares.checkBodyNull,verifyToken.verifyToken, resService.createRas)
     .get(verifyToken.verifyToken, resService.getAllRes)
 Router.route('/restaurant/:id')
     .delete(middlewares.checkID, verifyToken.verifyToken, resService.deleteRes)
