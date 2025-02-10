@@ -8,7 +8,8 @@ const resService = require('./services/restaurantService');
 const categoryService = require('./services/categorsService');
 const tableService = require('./services/tableSevice');
 const foodService = require('./services/FoodService');
-const gallery= require ('./services/galleryService')
+const gallery = require('./services/galleryService')
+
 // const { verifyToken } = require('./utils/encrypt');
 
 const Router = express.Router();
@@ -16,7 +17,7 @@ Router.param('id', middlewares.checkID); // check pararm ID
 // all router Gallery 
 
 Router.route('/gallery')
-.get(gallery.getAllGallery)
+    .get(gallery.getAllGallery)
 
 // all router owner
 Router.route('/').get(ownerService.Ownertest)
@@ -48,7 +49,7 @@ Router.route('/user-admin/:id')
 Router.route('/restaurant/signin')
     .post(middlewares.checkBodyNull, resService.signInRes)
 Router.route('/restaurant')
-    .post(middlewares.checkBodyNull,verifyToken.verifyToken, resService.createRas)
+    .post(middlewares.checkBodyNull, verifyToken.verifyToken, resService.createRas)
     .get(verifyToken.verifyToken, resService.getAllRes)
 Router.route('/restaurant/:id')
     .delete(middlewares.checkID, verifyToken.verifyToken, resService.deleteRes)
@@ -92,19 +93,23 @@ Router.route('/table/status/:id')
 Router.route('/table/:id')
     .delete(middlewares.checkID, tableService.deleteTable)
     .patch(middlewares.checkBodyNull, middlewares.checkID, tableService.editTable)
+    .get(middlewares.checkID, tableService.getAllTableByStatus)
 Router.route('/table')
     .post(middlewares.checkBodyNull, middlewares.checkID, tableService.createTable)
+Router.route('/table/reserve/:id')
+    .patch(middlewares.checkBodyNull, middlewares.checkID, tableService.reserveTable)
 
 Router.route('/food/all/:id')
     .get(middlewares.checkID, foodService.getAllfood)
 Router.route('/food')
     .post(middlewares.checkBodyNull, foodService.createfood)
-    .patch(middlewares.checkBodyNull,middlewares.checkID,foodService.editfood)
+    .patch(middlewares.checkBodyNull, middlewares.checkID, foodService.editfood)
 Router.route('/food/:id')
     .delete(middlewares.checkID, foodService.deletefood)
-    .get(middlewares.checkID,foodService.getByIdfood)
+    .get(middlewares.checkID, foodService.getByIdfood)
 Router.route('/food/status/:id')
     .patch(middlewares.checkID, middlewares.checkBodyNull, foodService.editStatusfood)
+    .get(middlewares.checkID, foodService.getFoodByStatus)
 
 
 

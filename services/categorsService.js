@@ -83,7 +83,7 @@ exports.getCategoryByStatus = (req, res, next) => {
     }
     const status = "active"
     try {
-        const checkSql = `SELECT category_ID, category  FROM Categories WHERE  restaurant_ID = ? AND category_status =? `;
+        const checkSql = `SELECT category_ID, category,category_image  FROM Categories WHERE  restaurant_ID = ? AND category_status =? `;
         db.query(checkSql, [id, status], (error, results) => {
             if (error) {
                 console.error('Error fetching category:', error.message);
@@ -93,7 +93,7 @@ exports.getCategoryByStatus = (req, res, next) => {
             if (results.length <= 0) {
                 return res.status(409).json({ message: `Not found Category Id` });
             }
-            return res.status(200).json({ status: "200", message: 'Category fetching successfullyccccccc', data: results });
+            return res.status(200).json({ status: "200", message: 'Category fetching successfully', data: results });
 
         });
 

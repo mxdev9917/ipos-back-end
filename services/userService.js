@@ -35,7 +35,6 @@ exports.getUserById = (req, res, next) => {
 };
 
 
-
 exports.getAllUserById = (req, res, next) => {
     let { id } = req.params;
     id = Number(id);  // Convert id to a number

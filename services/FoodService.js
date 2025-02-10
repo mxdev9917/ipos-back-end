@@ -89,7 +89,7 @@ exports.createfood = (req, res, next) => {
             return res.status(400).json({ message: err.message });
         }
 
-        const { category_ID, restaurant_ID, food_name, price,gallery_path } = req.body;
+        const { category_ID, restaurant_ID, food_name, price, gallery_path } = req.body;
         const food_img = req.file ? `/images/food_img/${req.file.filename}` : gallery_path || null;
 
         if (!category_ID || !restaurant_ID || !food_name || !price) {
@@ -113,12 +113,12 @@ exports.createfood = (req, res, next) => {
                     return res.status(409).json({ message: `food '${results[0].food_name}' already exists.` });
                 }
                 const insertSql = `INSERT INTO Foods (category_ID, restaurant_ID, food_name, price, food_img) VALUES (?, ?, ?, ?, ?)`;
-                db.query(insertSql, [category_ID, restaurant_ID, food_name, price, food_img],  (error, results) => {
+                db.query(insertSql, [category_ID, restaurant_ID, food_name, price, food_img], (error, results) => {
                     if (error) {
                         console.error("Error inserting food:", error.message);
                         return errors.mapError(500, "Internal server error", next);
                     }
-                 
+
                     return res.status(201).json({
                         status: "201",
                         message: "food created successfully",
@@ -145,8 +145,8 @@ exports.editfood = (req, res, next) => {
         if (err) {
             return res.status(400).json({ message: err.message });
         }
-        const { food_ID, category_ID, food_name, price,gallery_path } = req.body;
-        const food_img = req.file ? `/images/food_img/${req.file.filename}` : gallery_path || null;     
+        const { food_ID, category_ID, food_name, price, gallery_path } = req.body;
+        const food_img = req.file ? `/images/food_img/${req.file.filename}` : gallery_path || null;
         try {
             if (food_img != null) {
                 if (!gallery_path) {
@@ -158,7 +158,7 @@ exports.editfood = (req, res, next) => {
                         price = ?, 
                         food_img = ? 
                     WHERE food_ID = ?`;
-                db.query(updateSql, [category_ID, food_name, price, food_img, food_ID],  (error, results) => {
+                db.query(updateSql, [category_ID, food_name, price, food_img, food_ID], (error, results) => {
                     if (error) {
                         console.error("Error updating food:", error.message);
                         return errors.mapError(500, "Internal server error", next);
@@ -199,7 +199,6 @@ exports.editfood = (req, res, next) => {
 
 
 };
-
 
 exports.deletefood = (req, res, next) => {
 
@@ -259,6 +258,33 @@ exports.editStatusfood = (req, res, next) => {
             return res.status(200).json({ status: "200", message: 'Foods edit successfully', data: results });
 
         });
+
+    } catch (error) {
+        console.log(error.message);
+        errors.mapError(500, 'Internal server error', next);
+    }
+
+}
+
+exports.getFoodByStatus = (req, res, next) => {
+    let { id } = req.params;
+    id = Number(id);
+    if (Number.isNaN(id)) {
+        return errors.mapError(400, "Request parameter invalid type", next);  // Return a 400 for invalid ID
+    }
+    const status = "active"
+    try {
+        const sql = `SELECT * FROM Foods WHERE restaurant_ID = ? AND food_status =?`
+        db.query(sql, [ id,status], (error, results) => {
+            if (error) {
+                console.error('Error fetching Food:', error.message);
+                errors.mapError(500, "Internal server error", next);
+                return;
+            }
+            return res.status(200).json({ status: "200", message: 'Food fetching successfully', data: results });
+        });
+
+
 
     } catch (error) {
         console.log(error.message);

@@ -44,10 +44,47 @@ exports.getAlltable = (req, res, next) => {
         console.log(error.message);
         errors.mapError(500, 'Internal server error', next);
     }
-
-
-
 }
+
+exports.getAllTableByStatus = (req, res, next) => {
+    let { id } = req.params;
+    id = Number(id);  // Convert id to a number
+    if (Number.isNaN(id)) {
+        return errors.mapError(400, "Request parameter invalid type", next);  // Return a 400 for invalid ID
+    }
+    const { page, limit } = req.query;
+    const pageNumber = page ? Number(page) : 1;
+    const pageLimit = limit ? Number(limit) : 100;
+
+    try {
+        const sql = `SELECT table_ID, table_name, table_status FROM Tables WHERE table_status != ? AND restaurant_ID = ? LIMIT ? OFFSET ?`;
+        const offset = (pageNumber - 1) * pageLimit;
+
+        db.query(sql, ["disable", id, pageLimit, offset], (error, results) => {
+            if (error) {
+                console.error('Error fetching tables:', error.message);
+                return errors.mapError(500, "Internal server error", next);
+            }
+            const countsql = `SELECT COUNT(*) as total FROM Tables WHERE restaurant_ID = ?`;
+            db.query(countsql, [id], (countError, countResults) => {
+                if (countError) {
+                    console.error('Error counting tables:', countError.message);
+                    return errors.mapError(500, "Internal server error", next);
+                }
+                const totalRecords = countResults[0].total;
+                return res.status(200).json({
+                    status: "200",
+                    message: "Got all tables by status Active successfully",
+                    total_item: totalRecords,
+                    data: results
+                });
+            });
+        });
+    } catch (error) {
+        console.log('Unexpected error:', error.message);
+        errors.mapError(500, 'Internal server error', next);
+    }
+};
 
 
 exports.deleteTable = (req, res, next) => {
@@ -110,30 +147,30 @@ exports.createTable = (req, res, next) => {
     }
 }
 
-exports.editTable=(req, res,next)=>{
-     let { id } = req.params;
-        id = Number(id);  // Convert id to a number
-        let body = req.body;
-        const { table_name, update_at } = body;
-        if (Number.isNaN(id)) {
-            return errors.mapError(400, "Request parameter invalid type", next);  // Return a 400 for invalid ID
-        }
-        try {
-            const sql = `UPDATE Tables SET table_name=?,update_at=? WHERE table_ID =?`;
-            db.query(sql, [table_name, update_at, id], (error, results) => {
-                if (error) {
-                    console.error('Error update user:', error.message);
-                    errors.mapError(500, "Internal server error", next);
-                    return;
-                }
-                return res.status(200).json({ status: "200", message: 'Tables edit successfully', data: results });
-    
-            });
-    
-        } catch (error) {
-            console.log(error.message);
-            errors.mapError(500, 'Internal server error', next);
-        }
+exports.editTable = (req, res, next) => {
+    let { id } = req.params;
+    id = Number(id);  // Convert id to a number
+    let body = req.body;
+    const { table_name, update_at } = body;
+    if (Number.isNaN(id)) {
+        return errors.mapError(400, "Request parameter invalid type", next);  // Return a 400 for invalid ID
+    }
+    try {
+        const sql = `UPDATE Tables SET table_name=?,update_at=? WHERE table_ID =?`;
+        db.query(sql, [table_name, update_at, id], (error, results) => {
+            if (error) {
+                console.error('Error update user:', error.message);
+                errors.mapError(500, "Internal server error", next);
+                return;
+            }
+            return res.status(200).json({ status: "200", message: 'Tables edit successfully', data: results });
+
+        });
+
+    } catch (error) {
+        console.log(error.message);
+        errors.mapError(500, 'Internal server error', next);
+    }
 }
 
 exports.editStatusTable = (req, res, next) => {
@@ -160,5 +197,34 @@ exports.editStatusTable = (req, res, next) => {
         console.log(error.message);
         errors.mapError(500, 'Internal server error', next);
     }
+
+}
+
+exports.reserveTable = (req, res, next) => {
+
+    let { id } = req.params;
+    id = Number(id);
+    if (Number.isNaN(id)) {
+        return errors.mapError(400, "Request parameter invalid type", next);  // Return a 400 for invalid ID
+    }
+    const  table_status ="reserve";
+
+    try {
+        const sql = `UPDATE Tables set table_status=? WHERE table_ID=?`
+        db.query(sql, [table_status, id], (error) => {
+            if (error) {
+                console.error('Error update :', error.message);
+                errors.mapError(500, "Internal server error", next);
+                return;
+            }
+            return res.status(200).json({ status: "200", message: 'table update  successfully'});
+        });
+
+    } catch (error) {
+        console.log(error.message);
+        errors.mapError(500, 'Internal server error', next);
+    }
+
+
 
 }
