@@ -8,10 +8,15 @@ const resService = require('./services/restaurantService');
 const categoryService = require('./services/categorsService');
 const tableService = require('./services/tableSevice');
 const foodService = require('./services/FoodService');
+const gallery= require ('./services/galleryService')
 // const { verifyToken } = require('./utils/encrypt');
 
 const Router = express.Router();
 Router.param('id', middlewares.checkID); // check pararm ID
+// all router Gallery 
+
+Router.route('/gallery')
+.get(gallery.getAllGallery)
 
 // all router owner
 Router.route('/').get(ownerService.Ownertest)
@@ -71,10 +76,10 @@ Router.route('/category/all/:id')
     .get(middlewares.checkID, categoryService.gatAllCategory)
 Router.route('/category')
     .post(middlewares.checkBodyNull, categoryService.createCategory)
-   
+    .patch(middlewares.checkBodyNull, middlewares.checkID, categoryService.editCategory)
 Router.route('/category/:id')
     .get(middlewares.checkID, categoryService.getCategoryById)
-    .patch(middlewares.checkBodyNull, middlewares.checkID, categoryService.editCategory)
+
     .delete(middlewares.checkID, categoryService.deleteCategory)
 Router.route('/category/status/:id')
     .patch(middlewares.checkBodyNull, middlewares.checkID, categoryService.editStatusCategory)

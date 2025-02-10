@@ -74,6 +74,7 @@ CREATE TABLE `Categories` (
   `restaurant_ID` int NOT NULL,
   `category` varchar(100) NOT NULL,
   `category_status` varchar(20) DEFAULT 'active',
+  `category_image` varchar(100) NOT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `update_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`category_ID`),
@@ -98,5 +99,5 @@ CREATE TABLE `Foods` (
 CREATE TABLE `PathImg`(
   pathImg_ID INT AUTO_INCREMENT NOT NULL,
   pathImg_name VARCHAR(100),
-   PRIMARY KEY (`pathImg_ID`),
+  PRIMARY KEY (`pathImg_ID`),
 );

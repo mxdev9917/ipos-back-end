@@ -141,8 +141,6 @@ exports.editStatusTable = (req, res, next) => {
     id = Number(id);  // Convert id to a number
     let body = req.body;
     const { table_status, update_at } = body;
-    console.log({ table_status, update_at });
-    
     if (Number.isNaN(id)) {
         return errors.mapError(400, "Request parameter invalid type", next);  // Return a 400 for invalid ID
     }

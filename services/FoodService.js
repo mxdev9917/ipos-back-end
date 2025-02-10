@@ -2,7 +2,7 @@ const errors = require('../utils/errors');
 const encrypt = require('../utils/encrypt');
 const db = require('../db/connection');
 const upload = require('../utils/multerConfig');
-
+const insertPathImg = require("../utils/insertPathImg");
 exports.getAllfood = (req, res, next) => {
     let { id } = req.params;
     id = Number(id);  // Convert id to a number
@@ -84,19 +84,25 @@ exports.getByIdfood = (req, res, next) => {
 
 
 exports.createfood = (req, res, next) => {
-    upload.single("food_img")(req, res, (err) => {
+    upload.single("food_img")(req, res, async (err) => {
         if (err) {
             return res.status(400).json({ message: err.message });
         }
 
-        const { category_ID, restaurant_ID, food_name, price } = req.body;
-        const food_img = req.file ? `/images/food_img/${req.file.filename}` : null; // ✅ Fixed path
+        const { category_ID, restaurant_ID, food_name, price,gallery_path } = req.body;
+        const food_img = req.file ? `/images/food_img/${req.file.filename}` : gallery_path || null;
 
         if (!category_ID || !restaurant_ID || !food_name || !price) {
             return res.status(400).json({ message: "All required fields must be provided." });
         }
 
+        console.log(food_img);
+
         try {
+            if (!gallery_path) {
+                await insertPathImg(food_img);
+            }
+
             const checkSql = `SELECT food_name FROM Foods WHERE food_name = ? AND restaurant_ID = ?`;
             db.query(checkSql, [food_name, restaurant_ID], (error, results) => {
                 if (error) {
@@ -106,13 +112,13 @@ exports.createfood = (req, res, next) => {
                 if (results.length > 0) {
                     return res.status(409).json({ message: `food '${results[0].food_name}' already exists.` });
                 }
-
                 const insertSql = `INSERT INTO Foods (category_ID, restaurant_ID, food_name, price, food_img) VALUES (?, ?, ?, ?, ?)`;
-                db.query(insertSql, [category_ID, restaurant_ID, food_name, price, food_img], (error, results) => {
+                db.query(insertSql, [category_ID, restaurant_ID, food_name, price, food_img],  (error, results) => {
                     if (error) {
                         console.error("Error inserting food:", error.message);
                         return errors.mapError(500, "Internal server error", next);
                     }
+                 
                     return res.status(201).json({
                         status: "201",
                         message: "food created successfully",
@@ -134,52 +140,53 @@ exports.createfood = (req, res, next) => {
     });
 };
 
-
 exports.editfood = (req, res, next) => {
-    upload.single("food_img")(req, res, (err) => {
+    upload.single("food_img")(req, res, async (err) => {
         if (err) {
             return res.status(400).json({ message: err.message });
         }
-
-        const { food_ID, category_ID, food_name, price } = req.body;
-        const food_img = req.file ? `/images/food_img/${req.file.filename}` : null; // ✅ Fixed path
+        const { food_ID, category_ID, food_name, price,gallery_path } = req.body;
+        const food_img = req.file ? `/images/food_img/${req.file.filename}` : gallery_path || null;     
         try {
-            
-                if (food_img != null) {
-                    const updateSql = `UPDATE Foods 
+            if (food_img != null) {
+                if (!gallery_path) {
+                    await insertPathImg(food_img);
+                }
+                const updateSql = `UPDATE Foods 
                     SET category_ID = ?, 
                         food_name = ?, 
                         price = ?, 
                         food_img = ? 
                     WHERE food_ID = ?`;
-                    db.query(updateSql, [category_ID, food_name, price, food_img, food_ID], (error, results) => {
-                        if (error) {
-                            console.error("Error updating food:", error.message);
-                            return errors.mapError(500, "Internal server error", next);
-                        }
-                        return res.status(200).json({
-                            status: "200",
-                            message: "food updated successfully",
-                        });
+                db.query(updateSql, [category_ID, food_name, price, food_img, food_ID],  (error, results) => {
+                    if (error) {
+                        console.error("Error updating food:", error.message);
+                        return errors.mapError(500, "Internal server error", next);
+                    }
+
+                    return res.status(200).json({
+                        status: "200",
+                        message: "food updated successfully",
                     });
-                } else {
-                    const updateSql = `UPDATE Foods 
+                });
+            } else {
+                const updateSql = `UPDATE Foods 
                     SET category_ID = ?, 
                         food_name = ?, 
                         price = ?
                     WHERE food_ID = ?`;
-                    db.query(updateSql, [category_ID, food_name, price, food_ID], (error, results) => {
-                        if (error) {
-                            console.error("Error updating food:", error.message);
-                            return errors.mapError(500, "Internal server error", next);
-                        }
-                        return res.status(200).json({
-                            status: "200",
-                            message: "food updated successfully",
-                           
-                        });
+                db.query(updateSql, [category_ID, food_name, price, food_ID], (error, results) => {
+                    if (error) {
+                        console.error("Error updating food:", error.message);
+                        return errors.mapError(500, "Internal server error", next);
+                    }
+                    return res.status(200).json({
+                        status: "200",
+                        message: "food updated successfully",
+
                     });
-                }
+                });
+            }
 
 
 
@@ -259,4 +266,6 @@ exports.editStatusfood = (req, res, next) => {
     }
 
 }
+
+
 
