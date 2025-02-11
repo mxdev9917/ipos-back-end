@@ -200,31 +200,3 @@ exports.editStatusTable = (req, res, next) => {
 
 }
 
-exports.reserveTable = (req, res, next) => {
-
-    let { id } = req.params;
-    id = Number(id);
-    if (Number.isNaN(id)) {
-        return errors.mapError(400, "Request parameter invalid type", next);  // Return a 400 for invalid ID
-    }
-    const  table_status ="reserve";
-
-    try {
-        const sql = `UPDATE Tables set table_status=? WHERE table_ID=?`
-        db.query(sql, [table_status, id], (error) => {
-            if (error) {
-                console.error('Error update :', error.message);
-                errors.mapError(500, "Internal server error", next);
-                return;
-            }
-            return res.status(200).json({ status: "200", message: 'table update  successfully'});
-        });
-
-    } catch (error) {
-        console.log(error.message);
-        errors.mapError(500, 'Internal server error', next);
-    }
-
-
-
-}

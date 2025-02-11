@@ -9,6 +9,7 @@ const categoryService = require('./services/categorsService');
 const tableService = require('./services/tableSevice');
 const foodService = require('./services/FoodService');
 const gallery = require('./services/galleryService')
+const orderService =require('./services/orderService');
 
 // const { verifyToken } = require('./utils/encrypt');
 
@@ -96,8 +97,7 @@ Router.route('/table/:id')
     .get(middlewares.checkID, tableService.getAllTableByStatus)
 Router.route('/table')
     .post(middlewares.checkBodyNull, middlewares.checkID, tableService.createTable)
-Router.route('/table/reserve/:id')
-    .patch(middlewares.checkBodyNull, middlewares.checkID, tableService.reserveTable)
+
 
 Router.route('/food/all/:id')
     .get(middlewares.checkID, foodService.getAllfood)
@@ -111,8 +111,12 @@ Router.route('/food/status/:id')
     .patch(middlewares.checkID, middlewares.checkBodyNull, foodService.editStatusfood)
     .get(middlewares.checkID, foodService.getFoodByStatus)
 
-
-
+//  all router Orders 
+ Router.route('/order')
+ .post(middlewares.checkBodyNull,orderService.creatOrder)
+ .delete(middlewares.checkBodyNull,orderService.canelOrder)
+ Router.route('/order/:id')
+ .delete(middlewares.checkBodyNull,orderService.canelOrder)
 
 module.exports = Router;
 

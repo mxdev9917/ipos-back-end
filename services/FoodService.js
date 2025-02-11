@@ -270,28 +270,40 @@ exports.getFoodByStatus = (req, res, next) => {
     let { id } = req.params;
     id = Number(id);
     if (Number.isNaN(id)) {
-        return errors.mapError(400, "Request parameter invalid type", next);  // Return a 400 for invalid ID
+        return errors.mapError(400, "Request parameter invalid type", next);
     }
-    const status = "active"
-    try {
-        const sql = `SELECT * FROM Foods WHERE restaurant_ID = ? AND food_status =?`
-        db.query(sql, [ id,status], (error, results) => {
-            if (error) {
-                console.error('Error fetching Food:', error.message);
-                errors.mapError(500, "Internal server error", next);
-                return;
+
+    const status = "active";
+    const { page, limit } = req.query;
+    const pagenumber = page ? Number(page) : 1;
+    const pageLimit = limit ? Number(limit) : 100;
+    const offset = (pagenumber - 1) * pageLimit;  // Fixed offset calculation
+
+    const sql = `SELECT food_ID,food_name,price,food_img FROM Foods WHERE restaurant_ID = ? AND food_status = ? LIMIT ? OFFSET ?;`;
+
+    db.query(sql, [id, status,pageLimit ,offset], (error, results) => {
+        if (error) {
+            console.error('Error fetching Food:', error.message);
+            return errors.mapError(500, "Internal server error", next);
+        }
+
+        const countSql = `SELECT COUNT(*) AS total FROM Foods WHERE restaurant_ID = ? AND food_status = ?;`;
+        db.query(countSql, [id, status], (countError, countResults) => {
+            if (countError) {
+                console.error('Error fetching Count Food:', countError.message);
+                return errors.mapError(500, "Internal server error", next);
             }
-            return res.status(200).json({ status: "200", message: 'Food fetching successfully', data: results });
+
+            const totalRecords = countResults[0].total;
+            return res.status(200).json({
+                status: "200",
+                message: "Get all Foods successfully",
+                total_item: totalRecords,
+                data: results,
+            });
         });
-
-
-
-    } catch (error) {
-        console.log(error.message);
-        errors.mapError(500, 'Internal server error', next);
-    }
-
-}
+    });
+};
 
 
 

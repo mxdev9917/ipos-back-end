@@ -101,3 +101,27 @@ CREATE TABLE `PathImg`(
   pathImg_name VARCHAR(100),
   PRIMARY KEY (`pathImg_ID`),
 );
+
+CREATE TABLE `Menu_items` (
+  `Menu_items_ID` INT NOT NULL AUTO_INCREMENT,
+  `order_ID` INT NOT NULL,
+  `food_ID` INT NOT NULL,
+  `quantity` INT NOT NULL,
+  `description` VARCHAR(100),
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`Menu_items_ID`),
+  FOREIGN KEY (`order_ID`) REFERENCES `Orders`(`order_ID`),
+  FOREIGN KEY (`food_ID`) REFERENCES `Foods`(`food_ID`)
+);
+
+CREATE TABLE `Orders` (
+  `order_ID` INT NOT NULL AUTO_INCREMENT,
+  `table_ID` INT NOT NULL,
+  `user_ID` INT NOT NULL,
+  `order_status` VARCHAR(20) DEFAULT 'unpaid',
+  `total_price` DECIMAL(10,2),
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`order_ID`)
+);
