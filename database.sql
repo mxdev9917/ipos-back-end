@@ -103,14 +103,14 @@ CREATE TABLE `PathImg`(
 );
 
 CREATE TABLE `Menu_items` (
-  `Menu_items_ID` INT NOT NULL AUTO_INCREMENT,
+  `menu_items_ID` INT NOT NULL AUTO_INCREMENT,
   `order_ID` INT NOT NULL,
   `food_ID` INT NOT NULL,
   `quantity` INT NOT NULL,
   `description` VARCHAR(100),
   `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`Menu_items_ID`),
+  PRIMARY KEY (`menu_items_ID`),
   FOREIGN KEY (`order_ID`) REFERENCES `Orders`(`order_ID`),
   FOREIGN KEY (`food_ID`) REFERENCES `Foods`(`food_ID`)
 );

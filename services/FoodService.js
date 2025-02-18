@@ -82,6 +82,55 @@ exports.getByIdfood = (req, res, next) => {
     }
 };
 
+exports.getByIdCategory = (req, res, next) => {
+    let { id } = req.params;
+    id = Number(id); // Convert id to a number
+    const { page, limit } = req.query; // Use query params instead of body
+    const pageNumber = page ? Number(page) : 1;
+    const pageLimit = limit ? Number(limit) : 100;
+    const offset = (pageNumber - 1) * pageLimit;
+
+    if (Number.isNaN(id)) {
+        return errors.mapError(400, "Request parameter invalid type", next);
+    }
+
+    const status = "active";
+    
+    const sql = `
+        SELECT p.food_name, p.price, c.category_ID, c.category, p.food_img
+        FROM Foods p
+        JOIN Categories c ON c.category_ID = p.category_ID
+        WHERE c.category_ID = ? AND p.food_status = ? 
+        LIMIT ? OFFSET ?
+    `;
+
+    db.query(sql, [id, status, pageLimit, offset], (error, results) => {
+        if (error) {
+            console.error("Error fetching Foods:", error.message);
+            return errors.mapError(500, "Internal server error", next);
+        }
+
+        // Count total items
+        const countSql = `SELECT COUNT(*) as total FROM Foods WHERE category_ID = ?`;
+        db.query(countSql, [id], (countError, countResults) => {
+            if (countError) {
+                console.error("Error counting Foods:", countError.message);
+                return errors.mapError(500, "Internal server error", next);
+            }
+
+            // Ensure countResults is not empty
+            const totalRecords = countResults.length > 0 ? countResults[0].total : 0;
+
+            return res.status(200).json({
+                status: 200,
+                message: "Get all foods successfully",
+                total_item: totalRecords, // Ensure this is properly returned
+                data: results,
+            });
+        });
+    });
+};
+
 
 exports.createfood = (req, res, next) => {
     upload.single("food_img")(req, res, async (err) => {
@@ -281,7 +330,7 @@ exports.getFoodByStatus = (req, res, next) => {
 
     const sql = `SELECT food_ID,food_name,price,food_img FROM Foods WHERE restaurant_ID = ? AND food_status = ? LIMIT ? OFFSET ?;`;
 
-    db.query(sql, [id, status,pageLimit ,offset], (error, results) => {
+    db.query(sql, [id, status, pageLimit, offset], (error, results) => {
         if (error) {
             console.error('Error fetching Food:', error.message);
             return errors.mapError(500, "Internal server error", next);

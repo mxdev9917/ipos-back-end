@@ -9,7 +9,7 @@ const categoryService = require('./services/categorsService');
 const tableService = require('./services/tableSevice');
 const foodService = require('./services/FoodService');
 const gallery = require('./services/galleryService')
-const orderService =require('./services/orderService');
+const orderService = require('./services/orderService');
 
 // const { verifyToken } = require('./utils/encrypt');
 
@@ -98,7 +98,8 @@ Router.route('/table/:id')
 Router.route('/table')
     .post(middlewares.checkBodyNull, middlewares.checkID, tableService.createTable)
 
-
+Router.route('/food/all/category/:id')
+    .get(middlewares.checkID, foodService.getByIdCategory)
 Router.route('/food/all/:id')
     .get(middlewares.checkID, foodService.getAllfood)
 Router.route('/food')
@@ -112,11 +113,16 @@ Router.route('/food/status/:id')
     .get(middlewares.checkID, foodService.getFoodByStatus)
 
 //  all router Orders 
- Router.route('/order')
- .post(middlewares.checkBodyNull,orderService.creatOrder)
- .delete(middlewares.checkBodyNull,orderService.canelOrder)
- Router.route('/order/:id')
- .delete(middlewares.checkBodyNull,orderService.canelOrder)
+Router.route('/order')
+    .post(middlewares.checkBodyNull, orderService.creatOrder)
+Router.route('/cancel/order/:id')
+    .delete(middlewares.checkBodyNull, orderService.cancelOrder)
+Router.route('/menu/item')
+.post(middlewares.checkBodyNull,orderService.createMenuItem)
+Router.route('/menu/item/:id')
+.get(middlewares.checkID,orderService.getMenuItem)
+.delete(middlewares.checkID,orderService.deleteMenuItem)
+
 
 module.exports = Router;
 
