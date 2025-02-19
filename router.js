@@ -7,7 +7,7 @@ const verifyToken = require('./utils/verifyToken');
 const resService = require('./services/restaurantService');
 const categoryService = require('./services/categorsService');
 const tableService = require('./services/tableSevice');
-const foodService = require('./services/FoodService');
+const foodService = require('./services/foodService');
 const gallery = require('./services/galleryService')
 const orderService = require('./services/orderService');
 
@@ -122,6 +122,8 @@ Router.route('/menu/item')
 Router.route('/menu/item/:id')
 .get(middlewares.checkID,orderService.getMenuItem)
 .delete(middlewares.checkID,orderService.deleteMenuItem)
+Router.route('/success/order')
+.post(middlewares.checkBodyNull,orderService.successOrder)
 
 
 module.exports = Router;

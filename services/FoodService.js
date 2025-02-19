@@ -97,7 +97,7 @@ exports.getByIdCategory = (req, res, next) => {
     const status = "active";
     
     const sql = `
-        SELECT p.food_name, p.price, c.category_ID, c.category, p.food_img
+        SELECT  p.food_ID, p.food_name, p.price, c.category_ID, c.category, p.food_img
         FROM Foods p
         JOIN Categories c ON c.category_ID = p.category_ID
         WHERE c.category_ID = ? AND p.food_status = ? 

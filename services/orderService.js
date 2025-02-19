@@ -90,11 +90,11 @@ exports.cancelOrder = (req, res, next) => {
 
 exports.createMenuItem = (req, res, next) => {
     const { table_ID, food_ID, quantity, description } = req.body;
-
     try {
         // Fetch order ID first
-        const orderSql = `SELECT * FROM Orders WHERE table_ID = ?`;
-        db.query(orderSql, [table_ID], (orderError, orderResults) => {
+        const order_status = "unpaid"
+        const orderSql = `SELECT * FROM Orders WHERE table_ID = ? AND order_status=?`;
+        db.query(orderSql, [table_ID, order_status], (orderError, orderResults) => {
             if (orderError) {
                 console.error('Error fetching order:', orderError.message);
                 return errors.mapError(orderError, 500, "Error fetching order", next);
@@ -125,6 +125,8 @@ exports.createMenuItem = (req, res, next) => {
                     } else {
                         // Insert new menu item
                         insertMenuItem(orders_ID, food_ID, quantity, description, res, next);
+                        const table_status = "busy";
+                        updateTableStatus(table_status, table_ID, next)
                     }
                 });
             } else {
@@ -147,6 +149,17 @@ const insertMenuItem = (orders_ID, food_ID, quantity, description, res, next) =>
         return res.status(200).json({ status: "200", message: 'Successfully inserted' });
     });
 };
+
+const updateTableStatus = (table_status, table_ID, next) => {
+    const sql = `UPDATE Tables SET table_status=? WHERE table_ID =?`;
+    db.query(sql, [table_status, table_ID], (error) => {
+        if (error) {
+            console.error('Error update Tables:', error.message);
+            errors.mapError(500, "Internal server error", next);
+            return;
+        }
+    });
+}
 exports.getMenuItem = (req, res, next) => {
     let { id } = req.params;
     id = Number(id);
@@ -156,28 +169,45 @@ exports.getMenuItem = (req, res, next) => {
     }
 
     try {
-        const sql = `
-            SELECT  M.menu_items_ID, F.food_name, F.price, M.quantity
+        const newOrderStatus = "unpaid"
+        const sql = `SELECT order_ID FROM Orders WHERE table_ID=? AND order_status=?  `
+        db.query(sql, [id, newOrderStatus], (error, results) => {
+            if (error) {
+                console.error("Error fetching order id:", error.message);
+                return errors.mapError(error, 500, "Error fetching order id", next);
+            }
+            const newOrder_ID = results[0].order_ID
+            const sql = `
+            SELECT M.menu_items_ID, F.food_name, F.price, M.quantity
             FROM Menu_items M
             LEFT JOIN Orders O ON M.order_ID = O.order_ID
             LEFT JOIN Foods F ON M.food_ID = F.food_ID
-            WHERE O.table_ID = ?`;
+            WHERE O.order_ID = ?`;
 
-        db.query(sql, [id], (error, results) => {
-            if (error) {
-                console.error("Error fetching menu item:", error.message);
-                return errors.mapError(error, 500, "Error fetching menu item", next);
-            }
+            db.query(sql, [newOrder_ID], (error, results) => {
+                if (error) {
+                    console.error("Error fetching menu item:", error.message);
+                    return errors.mapError(error, 500, "Error fetching menu item", next);
+                }
 
-            const totalPrice = results.reduce((acc, item) => acc + item.price, 0);
+                // Ensure all prices are numbers and handle NULL values
+                const totalPrice = results.reduce((acc, item) => acc + ((item.price || 0) * item.quantity), 0);
 
-            return res.status(200).json({
-                status: "200",
-                message: "Successfully fetched menu items and total quantity",
-                totalPrice: totalPrice,
-                data: results, 
+                return res.status(200).json({
+                    status: "200",
+                    message: "Successfully fetched menu items and total quantity",
+                    totalPrice: totalPrice,
+                    data: results,
+                });
             });
+
+
         });
+
+
+
+
+
 
     } catch (error) {
         console.error(error.message);
@@ -185,31 +215,60 @@ exports.getMenuItem = (req, res, next) => {
     }
 };
 
-exports.deleteMenuItem=(req,res,next)=>{
+exports.deleteMenuItem = (req, res, next) => {
     let { id } = req.params;
     id = Number(id);
     if (Number.isNaN(id)) {
         return errors.mapError(400, "Request parameter invalid type", next);
     }
     try {
-        const sql=`DELETE FROM Menu_items WHERE menu_items_ID=? `
-        db.query(sql,[id],(error)=>{
+        const sql = `DELETE FROM Menu_items WHERE menu_items_ID=? `
+        db.query(sql, [id], (error) => {
             if (error) {
                 console.error("Error deleting menu item:", error.message);
                 return errors.mapError(error, 500, "Error deleting menu item", next);
             }
             return res.status(200).json({
                 status: "200",
-                message: "Successfully deleted menu items", 
+                message: "Successfully deleted menu items",
             });
 
         });
-        
+
     } catch (error) {
         console.log(error.message);
         errors.mapError(500, "Internal server error", next);
 
     }
 }
+
+exports.successOrder = async (req, res, next) => {
+    const { table_ID, total_price } = req.body;
+    const order_status = "paid";
+    const table_status_empty = "empty";
+
+    try {
+        const sql = `UPDATE Orders SET total_price=?, order_status=? WHERE table_ID=?`;
+        await new Promise((resolve, reject) => {
+            db.query(sql, [total_price, order_status, table_ID], (error) => {
+                if (error) {
+                    console.error('Error updating order status:', error.message);
+                    return reject(errors.mapError(error, 500, "Error updating order status", next));
+                }
+                resolve();
+            });
+        });
+
+        // Set table to empty after successful order update
+        updateTableStatus(table_status_empty, table_ID, next);
+
+        return res.status(200).json({ status: "200", message: 'Successfully Updated' });
+
+    } catch (error) {
+        console.error(error.message);
+        return errors.mapError(error, 500, "Internal server error", next);
+    }
+};
+
 
 
