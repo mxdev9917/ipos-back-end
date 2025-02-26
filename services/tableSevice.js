@@ -199,4 +199,21 @@ exports.editStatusTable = (req, res, next) => {
     }
 
 }
+exports.getAlltableByStatusBusy = (req, res, next) => {
+    try {
+        const table_status = "busy";
+        const sql = `SELECT table_ID,table_name FROM Tables WHERE table_status=?`
+        db.query(sql, [table_status], (error, results) => {
+            if (error) {
+                console.error('Error fetching Tables:', error.message);
+                errors.mapError(500, "Internal server error", next);
+                return;
+            }
+            return res.status(200).json({ status: "200", message: 'Fetching Tables  successfully', data: results });
+        });
+    } catch (error) {
+        console.log(error.message);
+        errors.mapError(500, 'Internal server error', next);
+    }
+}
 
