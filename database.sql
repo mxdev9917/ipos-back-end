@@ -114,13 +114,28 @@ CREATE TABLE `Menu_items` (
   FOREIGN KEY (`order_ID`) REFERENCES `Orders`(`order_ID`) ON DELETE CASCADE,
   FOREIGN KEY (`food_ID`) REFERENCES `Foods`(`food_ID`)
 );
+
 CREATE TABLE `Orders` (
   `order_ID` INT NOT NULL AUTO_INCREMENT,
   `table_ID` INT NOT NULL,
   `user_ID` INT NOT NULL,
   `order_status` VARCHAR(20) DEFAULT 'unpaid',
-  `total_price` DECIMAL(10,2),
+  `total_price` DECIMAL(10, 2),
   `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`order_ID`)
 );
+
+CREATE TABLE `Rates`(
+  `rate_ID` INT NOT NULL AUTO_INCREMENT,
+  `restaurant_ID` INT NOT NULL,
+  `currency` VARCHAR(30) NOT NULL,
+  `rate` DECIMAL(10, 2) NOT NULL,
+  `rate_status` VARCHAR(20) DEFAULT 'active',
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+   PRIMARY KEY (`rate_ID`),
+    FOREIGN KEY (`restaurant_ID`) REFERENCES `Restaurants` (`restaurant_ID`) ON DELETE CASCADE
+);
+
+

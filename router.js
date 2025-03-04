@@ -10,6 +10,8 @@ const tableService = require('./services/tableSevice');
 const foodService = require('./services/foodService');
 const gallery = require('./services/galleryService')
 const orderService = require('./services/orderService');
+const rateService = require('./services/ExchangeRateSever')
+const reportService=require('./services/reportService');
 
 // const { verifyToken } = require('./utils/encrypt');
 
@@ -127,9 +129,21 @@ Router.route('/menu/item/:id')
 Router.route('/success/order')
     .post(middlewares.checkBodyNull, orderService.successOrder)
 Router.route('/table/included')
-.post(middlewares.checkBodyNull,orderService.TableIncluded)
+    .post(middlewares.checkBodyNull, orderService.TableIncluded)
+
+Router.route('/rate')
+    .post(middlewares.checkBodyNull, rateService.createRate)
+Router.route('/rate/:id')
+    .get(middlewares.checkID, rateService.gatRate)
+    .delete(middlewares.checkID, rateService.deleteRate)
+    .patch(middlewares.checkBodyNull,middlewares.checkID,rateService.editRate)
+Router.route('/rate/status/:id')
+    .patch(middlewares.checkBodyNull, middlewares.checkID, rateService.editStatusRate)
+    .get(middlewares.checkID,rateService.getRateByStatus)
 
 
+Router.route("/report/food/sale/:id")
+.get(middlewares.checkBodyNull,middlewares.checkID,reportService.getFoodSales)
 module.exports = Router;
 
 
