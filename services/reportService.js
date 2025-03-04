@@ -8,31 +8,49 @@ exports.getFoodSales = (req, res, next) => {
     if (Number.isNaN(id)) {
         return errors.mapError(400, "Request parameter invalid type", next);
     }
-
+    const { page, limit } = req.query;
+    const pageNumber = page ? Number(page) : 1;
+    const pageLimit = limit ? Number(limit) : 100;
+    const status = "paid";
     try {
         const sql = `
-        SELECT F.*
-        FROM Foods F
-        LEFT JOIN Categories C ON F.category_ID = C.category_ID
-        LEFT JOIN Restaurants R ON F.restaurant_ID = R.restaurant_ID 
-        WHERE F.restaurant_ID = ?`;
+                SELECT 
+                    mi.food_ID,
+                    SUM(mi.quantity) AS total_quantity, 
+                    SUM(o.total_price) AS total_price,
+                    f.food_name,
+                    c.category,
+                    f.price AS food_price
+                FROM 
+                    Menu_items mi
+                JOIN 
+                    Orders o ON mi.order_ID = o.order_ID
+                JOIN 
+                    Foods f ON mi.food_ID = f.food_ID
+                JOIN 
+                    Categories c ON f.category_ID = c.category_ID
+                JOIN 
+                    Restaurants r ON f.restaurant_ID = r.restaurant_ID
+                WHERE 
+                    r.restaurant_ID = ? AND o.order_status = ?
+                GROUP BY 
+                    mi.food_ID, f.food_name, f.price, c.category
+                ORDER BY 
+                    mi.food_ID
+                LIMIT ? OFFSET ?
 
-        db.query(sql, [id], (error, results) => {
+                `;
+        const offset = (pageNumber - 1) * pageLimit;
+        db.query(sql, [id, status, pageLimit, offset], (error, results) => {
             if (error) {
                 console.error("Error fetching food sale report:", error.message);
                 return errors.mapError(500, "Error fetching food sale report", next);
             }
-
-            if (!results.length) {
-                return res.status(404).json({
-                    status: "404",
-                    message: "No food items found for the given restaurant ID",
-                });
-            }
-
+            const totalRecords = results.length;
             return res.status(200).json({
                 status: "200",
-                message: "Successfully fetched menu items and total quantity",
+                message: 'Food sales retrieved successfully',
+                total_item: totalRecords,
                 data: results,
             });
         });
