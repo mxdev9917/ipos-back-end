@@ -21,5 +21,20 @@
     "node-datatable": "^3.0.3",
     "sequelize": "^6.37.5",
     "vite": "^6.0.3"
-  }
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mxdev9917/ipos-back-end.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mxdev9917/ipos-back-end/issues"
+  },
+  "homepage": "https://github.com/mxdev9917/ipos-back-end#readme",
+  "description": ""
 }

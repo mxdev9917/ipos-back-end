@@ -10,7 +10,7 @@ dotenv.config({ path: './config.env' });
 const app = express();
 
 // Add both development and production origins
-const allowedOrigins = ['http://localhost:5173', 'https://ipos.la', 'https://admin.ipos.la', 'https://restaurant.ipos.la'];  
+const allowedOrigins = ['http://localhost:5173', 'https://ipos.la', 'https://admin.ipos.la', 'https://res.ipos.la'];  
 const port = process.env.PORT || 8080;
 
 // CORS middleware configuration
