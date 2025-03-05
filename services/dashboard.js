@@ -36,7 +36,7 @@ const topProduct = (res_ID) => {
     return new Promise((resolve, reject) => {
         const sql = `
             SELECT 
-              
+              f.food_ID,
                 SUM(mi.quantity) AS total_quantity, 
                 SUM(o.total_price) AS total_price,
                 f.food_name,
