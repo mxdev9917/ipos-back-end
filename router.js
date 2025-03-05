@@ -12,6 +12,7 @@ const gallery = require('./services/galleryService')
 const orderService = require('./services/orderService');
 const rateService = require('./services/ExchangeRateSever')
 const reportService=require('./services/reportService');
+const dashboardService=require('./services/dashboard');
 
 // const { verifyToken } = require('./utils/encrypt');
 
@@ -145,6 +146,9 @@ Router.route('/rate/status/:id')
 Router.route("/report/food/sale/:id")
 .get(middlewares.checkBodyNull,middlewares.checkID,reportService.getFoodSales)
 module.exports = Router;
+
+Router.route("/dashboard/:id")
+.get(middlewares.checkID,dashboardService.getDashboard)
 
 
 
