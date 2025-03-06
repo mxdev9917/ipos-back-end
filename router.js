@@ -119,7 +119,7 @@ Router.route('/food/status/:id')
 
 //  all router Orders 
 Router.route('/order')
-    .post(middlewares.checkBodyNull, orderService.creatOrder)
+    .post(middlewares.checkBodyNull, orderService.createOrder)
 Router.route('/cancel/order/:id')
     .delete(middlewares.checkBodyNull, orderService.cancelOrder)
 Router.route('/menu/item')
@@ -148,7 +148,7 @@ Router.route("/report/food/sale/:id")
 module.exports = Router;
 
 Router.route("/dashboard/:id")
-.get(middlewares.checkID,dashboardService.getDashboard)
+.post(middlewares.checkBodyNull,middlewares.checkID,dashboardService.getDashboard)
 
 
 

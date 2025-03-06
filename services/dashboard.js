@@ -5,24 +5,30 @@ exports.getDashboard = async (req, res, next) => {
     let { id } = req.params;
     id = Number(id);
     const { currentDate } = req.body;
+
     if (Number.isNaN(id)) {
         return errors.mapError(400, "Request parameter invalid type", next);
     }
 
     try {
         const topProducts = await topProduct(id);
-        const totalSales = await totalSale(id);
+        const totalSales = await totalSale(id, currentDate);
         const timeSales = await timeSale(id, currentDate);
         const timeMenuItems = await timeMenuItem(id, currentDate);
-
-
+        const tableStatuss = await tableStatus(id, currentDate);
+        const orderStatuss = await orderStatus(id, currentDate);
+        const MenuItems = await MenuItem(id, currentDate);
+        
         return res.status(200).json({
             status: "200",
             message: "Successfully",
             totalSale: totalSales,
             topProduct: topProducts,
             timeSale: timeSales,
-            timeMenuItem: timeMenuItems
+            timeMenuItem: timeMenuItems,
+            tableStatus: tableStatuss,
+            orderStatus: orderStatuss,
+            menuItem:MenuItems[0]
         });
 
     } catch (error) {
@@ -70,13 +76,15 @@ const topProduct = (res_ID) => {
         });
     });
 };
-const totalSale = (res_ID) => {
+const totalSale = (res_ID, currentDate) => {
     const status = "paid";
+    console.log(currentDate);
+
     return new Promise((resolve, reject) => {
         const sql = `
             SELECT 
                 SUM(mi.quantity) AS total_quantity, 
-                SUM(o.total_price) AS total_price    
+                COUNT(o.order_ID) AS count_orders 
             FROM 
                 Menu_items mi
             JOIN 
@@ -88,10 +96,10 @@ const totalSale = (res_ID) => {
             JOIN 
                 Restaurants r ON f.restaurant_ID = r.restaurant_ID
             WHERE 
-                r.restaurant_ID = ? AND o.order_status = ?
+                r.restaurant_ID = ? AND o.order_status = ? AND DATE(o.updated_at) = ? 
         `;
 
-        db.query(sql, [res_ID, status], (error, results) => {
+        db.query(sql, [res_ID, status, currentDate], (error, results) => {
             if (error) {
                 console.error("Error fetching top product :", error);
                 return reject(new Error("Error fetching top product"));
@@ -101,13 +109,14 @@ const totalSale = (res_ID) => {
     });
 };
 
+
 const timeSale = (restaurantId, currentDate) => {
     const orderStatus = "paid";
     return new Promise((resolve, reject) => {
 
         const sql = `
             SELECT 
-                DATE_FORMAT(o.created_at, '%H:00:00') AS hour,
+               o.created_at AS hour,
                 SUM(o.total_price) AS total_sales 
             FROM Orders o
             JOIN Tables t ON o.table_ID = t.table_ID  
@@ -118,22 +127,17 @@ const timeSale = (restaurantId, currentDate) => {
             GROUP BY hour
             ORDER BY hour ASC
         `;
-
-        console.log("Executing query with current date:", currentDate, "restaurant ID:", restaurantId, "and order status:", orderStatus);
-
         db.query(sql, [currentDate, restaurantId, orderStatus], (error, results) => {
             if (error) {
                 console.error("Error fetching time sales:", error);
                 return reject(new Error("Error fetching time sales"));
             }
-            console.log("Query Result:", results);
             resolve(results); // Returning all results
         });
     });
 };
 
 const timeMenuItem = (restaurantId, currentDate) => {
-
 
     return new Promise((resolve, reject) => {
         const query = `
@@ -155,13 +159,71 @@ const timeMenuItem = (restaurantId, currentDate) => {
                 console.error("Error fetching MenuItem:", error);
                 return reject(new Error("Error fetching MenuItem"));
             }
-            console.log("Query Result:", results);
             resolve(results); // Returning all results
         });
     });
 };
 
+const tableStatus = (currentDate, restaurantId) => {
+    return new Promise((resolve, reject) => {
+        const query = `
+        SELECT 
+          
+            SUM(table_status = 'reserve') AS reserved_count,
+            SUM(table_status = 'busy') AS busy_count,
+            SUM(table_status = 'empty') AS empty_count
+        FROM Tables
+        WHERE  restaurant_ID = ?  
+        ;`
+        db.query(query, [currentDate, restaurantId], (error, results) => {
+            if (error) {
+                console.error("Error fetching table Status:", error);
+                return reject(new Error("Error fetching table Status"));
+            }
+            resolve(results);
+        });
+    })
+}
 
+const orderStatus = (restaurantId, currentDate) => {
+    console.log(restaurantId);
+
+    return new Promise((resolve, reject) => {
+        const query = `
+        SELECT 
+            SUM(order_status = 'paid') AS paid_count,
+            SUM(order_status = 'unpaid') AS unpaid_count
+        FROM Orders
+        WHERE restaurant_ID = ? AND (DATE(created_at) = ? OR DATE(updated_at) = ?);
+        `
+        db.query(query, [restaurantId, currentDate, currentDate], (error, results) => {
+            if (error) {
+                console.error("Error fetching table Status:", error);
+                return reject(new Error("Error fetching table Status"));
+            }
+            resolve(results);
+        });
+    });
+}
+
+const MenuItem = (restaurantId, currentDate) => {
+    return new Promise((resolve, reject) => {
+        const query = `
+        SELECT 
+             SUM(m.quantity) AS qty
+        FROM Menu_items m
+        JOIN Orders o ON m.order_ID = o.order_ID
+        WHERE o.restaurant_ID = ? AND (DATE(m.created_at) = ? OR DATE(m.updated_at) = ?);
+        `
+        db.query(query, [restaurantId, currentDate, currentDate], (error, results) => {
+            if (error) {
+                console.error("Error fetching table Status:", error);
+                return reject(new Error("Error fetching table Status"));
+            }
+            resolve(results);
+        });
+    });
+}
 
 
 

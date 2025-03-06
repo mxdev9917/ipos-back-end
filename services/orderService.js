@@ -1,12 +1,13 @@
 const errors = require('../utils/errors')
 const db = require('../db/connection');
 
-exports.creatOrder = (req, res, next) => {
+exports.createOrder = (req, res, next) => {
     let body = req.body;
-    const { table_ID, user_ID, table_status } = body
+    const { table_ID, user_ID, table_status,restaurant_ID } = body;
+    const currentDate = new Date();
     try {
-        const sql = `INSERT INTO Orders (table_ID, user_ID) VALUES(?,?)`;
-        db.query(sql, [table_ID, user_ID], (error, results) => {
+        const sql = `INSERT INTO Orders (table_ID,user_ID,restaurant_ID, created_at) VALUES(?,?,?,?)`;
+        db.query(sql, [table_ID, user_ID,restaurant_ID, currentDate], (error, results) => {
             if (error) {
                 console.error('Error create oder:', error.message);
                 errors.mapError(error, 500, "Error create oder", next)
@@ -35,7 +36,7 @@ exports.cancelOrder = (req, res, next) => {
     if (Number.isNaN(id)) {
         return errors.mapError(400, "Request parameter invalid type", next);
     }
-
+    const currentDate = new Date();
     try {
         const order_status = "unpaid";
         const fetchOrderSQL = `SELECT order_ID FROM Orders WHERE table_ID = ? AND order_status = ?;`;
@@ -69,8 +70,8 @@ exports.cancelOrder = (req, res, next) => {
                     }
 
                     // Update table status
-                    const updateTableSQL = `UPDATE Tables SET table_status = 'empty' WHERE table_ID = ?`;
-                    db.query(updateTableSQL, [id], (error) => {
+                    const updateTableSQL = `UPDATE Tables SET table_status = 'empty',update_at=? WHERE table_ID = ?`;
+                    db.query(updateTableSQL, [id, currentDate], (error) => {
                         if (error) {
                             console.error('Error updating table status:', error.message);
                             return next(errors.mapError(error, 500, "Error updating table status", next));
@@ -92,6 +93,7 @@ exports.createMenuItem = (req, res, next) => {
     const { table_ID, food_ID, quantity, description } = req.body;
     try {
         // Fetch order ID first
+        const currentDate = new Date();
         const order_status = "unpaid"
         const orderSql = `SELECT * FROM Orders WHERE table_ID = ? AND order_status=?`;
         db.query(orderSql, [table_ID, order_status], (orderError, orderResults) => {
@@ -114,8 +116,8 @@ exports.createMenuItem = (req, res, next) => {
                     if (menuResults.length > 0) {
                         let currentQty = Number(menuResults[0].quantity);
                         let newQty = currentQty + Number(quantity);
-                        const updateSql = `UPDATE Menu_items SET quantity = ?, description = ? WHERE order_ID = ? AND food_ID = ?`;
-                        db.query(updateSql, [newQty, description, orders_ID, food_ID], (updateError) => {
+                        const updateSql = `UPDATE Menu_items SET quantity = ?, description = ?,currentDate=? WHERE order_ID = ? AND food_ID = ?`;
+                        db.query(updateSql, [newQty, description, currentDate, orders_ID, food_ID], (updateError) => {
                             if (updateError) {
                                 console.error('Error updating menu item:', updateError.message);
                                 return errors.mapError(updateError, 500, "Error updating menu item", next);
@@ -140,8 +142,9 @@ exports.createMenuItem = (req, res, next) => {
     }
 }
 const insertMenuItem = (orders_ID, food_ID, quantity, description, res, next) => {
-    const insertSql = `INSERT INTO Menu_items (order_ID, food_ID, quantity, description) VALUES (?, ?, ?, ?)`;
-    db.query(insertSql, [orders_ID, food_ID, quantity, description], (insertError) => {
+    const currentDate = new Date();
+    const insertSql = `INSERT INTO Menu_items (order_ID, food_ID, quantity, description,created_at) VALUES (?, ?, ?, ?,?)`;
+    db.query(insertSql, [orders_ID, food_ID, quantity, description, currentDate], (insertError) => {
         if (insertError) {
             console.error('Error inserting menu item:', insertError.message);
             return errors.mapError(insertError, 500, "Error inserting menu item", next);
@@ -167,7 +170,7 @@ exports.getMenuItem = (req, res, next) => {
                 console.error("Error fetching order id:", error.message);
                 return errors.mapError(error, 500, "Error fetching order id", next);
             }
-            const newOrder_ID = results[0].order_ID
+            const newOrder_ID = results[0].order_ID;
             const sql = `
             SELECT M.menu_items_ID, F.food_name, F.price, M.quantity
             FROM Menu_items M
@@ -231,11 +234,13 @@ exports.successOrder = async (req, res, next) => {
     const { table_ID, total_price } = req.body;
     const order_status = "paid";
     const table_status_empty = "empty";
+    const currentDate = new Date();
+
 
     try {
-        const sql = `UPDATE Orders SET total_price=?, order_status=? WHERE table_ID=?`;
+        const sql = `UPDATE Orders SET total_price=?, order_status=?,updated_at=? WHERE table_ID=?`;
         await new Promise((resolve, reject) => {
-            db.query(sql, [total_price, order_status, table_ID], (error) => {
+            db.query(sql, [total_price, order_status, currentDate, table_ID], (error) => {
                 if (error) {
                     console.error('Error updating order status:', error.message);
                     return reject(errors.mapError(error, 500, "Error updating order status", next));
@@ -309,9 +314,10 @@ const deleteMTCUR = (CurOrderID) => {
 
 
 const updateMenuItemOrderNotMatch = (menu_items_ID, order_ID,) => {
+    const currentDate = new Date();
     return new Promise((resolve, reject) => {
-        const sql = `UPDATE Menu_items SET order_ID = ? WHERE menu_items_ID = ?`;
-        db.query(sql, [order_ID, menu_items_ID], (error, results) => {
+        const sql = `UPDATE Menu_items SET order_ID = ?,updated_at=? WHERE menu_items_ID = ?`;
+        db.query(sql, [order_ID, currentDate, menu_items_ID], (error, results) => {
             if (error) {
                 console.error(error);
                 return reject(new Error("Error updating order ID"));
@@ -327,9 +333,10 @@ const updateMenuItemOrderMatch = (menu_items_ID, order_ID, curQuantity, incQuant
     curQuantity = Number(curQuantity)
     incQuantity = Number(incQuantity)
     let qty = incQuantity + curQuantity;
+    const currentDate = new Date();
     return new Promise((resolve, reject) => {
-        const sql = `UPDATE Menu_items SET quantity=? WHERE menu_items_ID = ?`;
-        db.query(sql, [qty, menu_items_ID], (error, results) => {
+        const sql = `UPDATE Menu_items SET quantity=?,updated_at=? WHERE menu_items_ID = ?`;
+        db.query(sql, [qty, currentDate, menu_items_ID], (error, results) => {
             if (error) {
                 console.error(error);
                 return reject(new Error("Error updating order ID"));
@@ -374,8 +381,9 @@ const CurrentOrderID = async (table_ID) => {
 };
 const updateTableStatus = async (table_status, table_ID) => {
     return new Promise((resolve, reject) => {
-        const sql = `UPDATE Tables SET table_status=? WHERE table_ID=?`;
-        db.query(sql, [table_status, table_ID], (error) => {
+        const currentDate = new Date();
+        const sql = `UPDATE Tables SET table_status=?,update_at=? WHERE table_ID=?`;
+        db.query(sql, [table_status, currentDate, table_ID], (error) => {
             if (error) {
                 console.error("Error updating table status:", error.message);
                 return reject(errors.mapError(error, 500, "Error updating table status"));
