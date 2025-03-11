@@ -58,16 +58,6 @@ CREATE TABLE `Users` (
   CONSTRAINT `Users_ibfk_1` FOREIGN KEY (`restaurant_ID`) REFERENCES `Restaurants` (`restaurant_ID`) ON DELETE CASCADE
 );
 
-CREATE TABLE `Tables` (
-  `table_ID` int AUTO_INCREMENT NOT NULL,
-  `restaurant_ID` int NOT NULL,
-  `table_name` varchar(100) NOT NULL,
-  `table_status` varchar(20) DEFAULT 'empty',
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `update_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`table_ID`),
-  FOREIGN KEY (`restaurant_ID`) REFERENCES `Restaurants` (`restaurant_ID`) ON DELETE CASCADE
-);
 
 CREATE TABLE `Categories` (
   `category_ID` int AUTO_INCREMENT NOT NULL,

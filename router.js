@@ -10,7 +10,7 @@ const tableService = require('./services/tableSevice');
 const foodService = require('./services/foodService');
 const gallery = require('./services/galleryService')
 const orderService = require('./services/orderService');
-const rateService = require('./services/ExchangeRateSever')
+const rateService = require('./services/exchangeRateSever')
 const reportService=require('./services/reportService');
 const dashboardService=require('./services/dashboard');
 

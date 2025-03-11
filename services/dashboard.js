@@ -5,20 +5,21 @@ exports.getDashboard = async (req, res, next) => {
     let { id } = req.params;
     id = Number(id);
     const { currentDate } = req.body;
-
     if (Number.isNaN(id)) {
         return errors.mapError(400, "Request parameter invalid type", next);
     }
 
     try {
+       await updateTableStatusEmpty(id, currentDate);
         const topProducts = await topProduct(id);
         const totalSales = await totalSale(id, currentDate);
         const timeSales = await timeSale(id, currentDate);
         const timeMenuItems = await timeMenuItem(id, currentDate);
         const tableStatuss = await tableStatus(id, currentDate);
+        const timeTables = await timeTable(id, currentDate);
         const orderStatuss = await orderStatus(id, currentDate);
         const MenuItems = await MenuItem(id, currentDate);
-        
+
         return res.status(200).json({
             status: "200",
             message: "Successfully",
@@ -27,8 +28,9 @@ exports.getDashboard = async (req, res, next) => {
             timeSale: timeSales,
             timeMenuItem: timeMenuItems,
             tableStatus: tableStatuss,
+            timeTable: timeTables,
             orderStatus: orderStatuss,
-            menuItem:MenuItems[0]
+            menuItem: MenuItems[0]
         });
 
     } catch (error) {
@@ -78,8 +80,6 @@ const topProduct = (res_ID) => {
 };
 const totalSale = (res_ID, currentDate) => {
     const status = "paid";
-    console.log(currentDate);
-
     return new Promise((resolve, reject) => {
         const sql = `
             SELECT 
@@ -111,23 +111,21 @@ const totalSale = (res_ID, currentDate) => {
 
 
 const timeSale = (restaurantId, currentDate) => {
-    const orderStatus = "paid";
     return new Promise((resolve, reject) => {
 
         const sql = `
             SELECT 
-               o.created_at AS hour,
-                SUM(o.total_price) AS total_sales 
-            FROM Orders o
-            JOIN Tables t ON o.table_ID = t.table_ID  
-            JOIN Restaurants r ON t.restaurant_ID = r.restaurant_ID 
-            WHERE DATE(o.created_at) = ? 
-            AND r.restaurant_ID = ? 
-            AND o.order_status = ?
+                HOUR(created_at) AS hour,
+                SUM(order_status = 'paid') AS paid_count,
+                SUM(order_status = 'unpaid') AS unpaid_count
+            FROM Orders
+            WHERE restaurant_ID = ? 
+                AND (DATE(created_at) = ? OR DATE(updated_at) = ?)
             GROUP BY hour
             ORDER BY hour ASC
         `;
-        db.query(sql, [currentDate, restaurantId, orderStatus], (error, results) => {
+
+        db.query(sql, [restaurantId, currentDate, currentDate], (error, results) => {
             if (error) {
                 console.error("Error fetching time sales:", error);
                 return reject(new Error("Error fetching time sales"));
@@ -136,6 +134,7 @@ const timeSale = (restaurantId, currentDate) => {
         });
     });
 };
+
 
 const timeMenuItem = (restaurantId, currentDate) => {
 
@@ -185,8 +184,30 @@ const tableStatus = (currentDate, restaurantId) => {
     })
 }
 
+const timeTable = (currentDate, restaurantId) => {
+    return new Promise((resolve, reject) => {
+        const query = `
+        SELECT 
+           DATE_FORMAT(update_at, '%H:%i') AS hour,
+            SUM(table_status = 'reserve') AS reserved_count,
+            SUM(table_status = 'busy') AS busy_count,
+            SUM(table_status = 'empty') AS empty_count
+        FROM Tables
+        WHERE  restaurant_ID = ?  
+        GROUP BY hour
+        ORDER BY hour ASC
+        ;`
+        db.query(query, [currentDate, restaurantId], (error, results) => {
+            if (error) {
+                console.error("Error fetching table Status:", error);
+                return reject(new Error("Error fetching table Status"));
+            }
+            resolve(results);
+        });
+    })
+}
+
 const orderStatus = (restaurantId, currentDate) => {
-    console.log(restaurantId);
 
     return new Promise((resolve, reject) => {
         const query = `
@@ -209,21 +230,88 @@ const orderStatus = (restaurantId, currentDate) => {
 const MenuItem = (restaurantId, currentDate) => {
     return new Promise((resolve, reject) => {
         const query = `
-        SELECT 
-             SUM(m.quantity) AS qty
-        FROM Menu_items m
-        JOIN Orders o ON m.order_ID = o.order_ID
-        WHERE o.restaurant_ID = ? AND (DATE(m.created_at) = ? OR DATE(m.updated_at) = ?);
-        `
-        db.query(query, [restaurantId, currentDate, currentDate], (error, results) => {
+            SELECT 
+                SUM(m.quantity) AS qty
+            FROM Menu_items m
+            JOIN Orders o ON m.order_ID = o.order_ID
+            WHERE o.restaurant_ID = ? AND DATE(m.updated_at) = ?;
+        `;
+
+        db.query(query, [restaurantId, currentDate], (error, results) => {
             if (error) {
-                console.error("Error fetching table Status:", error);
-                return reject(new Error("Error fetching table Status"));
+                console.error("Error fetching menu item data:", error);
+                return reject(new Error("Error fetching menu item data"));
             }
             resolve(results);
         });
     });
-}
+};
+
+exports.getDashboard = async (req, res, next) => {
+    let { id } = req.params;
+    id = Number(id);
+    const { currentDate } = req.body;
+
+    if (Number.isNaN(id)) {
+        return errors.mapError(400, "Request parameter invalid type", next);
+    }
+
+    try {
+        await updateTableStatusEmpty(id, currentDate);
+        const topProducts = await topProduct(id);
+        const totalSales = await totalSale(id, currentDate);
+        const timeSales = await timeSale(id, currentDate);
+        const timeMenuItems = await timeMenuItem(id, currentDate);
+        const tableStatuss = await tableStatus(id, currentDate);
+        const timeTables = await timeTable(id, currentDate);
+        const orderStatuss = await orderStatus(id, currentDate);
+        const MenuItems = await MenuItem(id, currentDate);
+
+        return res.status(200).json({
+            status: "200",
+            message: "Successfully",
+            totalSale: totalSales,
+            topProduct: topProducts,
+            timeSale: timeSales,
+            timeMenuItem: timeMenuItems,
+            tableStatus: tableStatuss,
+            timeTable: timeTables,
+            orderStatus: orderStatuss,
+            menuItem: MenuItems[0],
+        });
+
+    } catch (error) {
+        console.error("Unexpected error:", error);
+        return next(errors.mapError(500, "Internal server error", next));
+    }
+};
+
+const updateTableStatusEmpty = (restaurantId, currentDate) => {
+    const status = "empty";
+    return new Promise((resolve, reject) => {
+        const sql = `SELECT table_ID FROM Tables WHERE restaurant_ID = ? AND table_status = ?`;
+        
+        db.query(sql, [restaurantId, status], (error, results) => {
+            if (error) {
+                console.error("Error fetching table id:", error);
+                return reject(new Error("Error fetching table id"));
+            }
+
+            for (const item of results) {
+                let id=item.table_ID;
+                const sql =`UPDATE Tables set update_at=? WHERE table_ID=? `
+                db.query(sql,[id,currentDate],(error)=>{
+                    if (error) {
+                        console.error("Error update update_at to date now  :", error);
+                        return reject(new Error("Error update update_at to date now "));
+                    } 
+                })
+            }
+            resolve();
+        });
+    });
+};
+
 
 
 

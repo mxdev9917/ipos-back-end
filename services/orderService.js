@@ -34,9 +34,11 @@ exports.cancelOrder = (req, res, next) => {
     let { id } = req.params;
     id = Number(id);
     if (Number.isNaN(id)) {
-        return errors.mapError(400, "Request parameter invalid type", next);
+        return next(errors.mapError(400, "Request parameter invalid type"));
     }
-    const currentDate = new Date();
+
+    const currentDate = new Date().toISOString().slice(0, 19).replace("T", " "); // Fix date format
+
     try {
         const order_status = "unpaid";
         const fetchOrderSQL = `SELECT order_ID FROM Orders WHERE table_ID = ? AND order_status = ?;`;
@@ -44,7 +46,7 @@ exports.cancelOrder = (req, res, next) => {
         db.query(fetchOrderSQL, [id, order_status], (error, results) => {
             if (error) {
                 console.error('Error fetching order ID:', error.message);
-                return next(errors.mapError(error, 500, "Error fetching order ID", next));
+                return next(errors.mapError(500, "Error fetching order ID"));
             }
 
             if (results.length === 0) {
@@ -53,12 +55,12 @@ exports.cancelOrder = (req, res, next) => {
 
             const order_ID = results[0].order_ID;
 
-            // Delete menu items first to avoid foreign key constraint
+            // Delete menu items first
             const deleteMenuItemsSQL = `DELETE FROM Menu_items WHERE order_ID = ?`;
             db.query(deleteMenuItemsSQL, [order_ID], (error) => {
                 if (error) {
                     console.error('Error deleting menu items:', error.message);
-                    return next(errors.mapError(error, 500, "Error deleting menu items", next));
+                    return next(errors.mapError(500, "Error deleting menu items"));
                 }
 
                 // Now delete the order
@@ -66,15 +68,15 @@ exports.cancelOrder = (req, res, next) => {
                 db.query(deleteOrderSQL, [order_ID], (error) => {
                     if (error) {
                         console.error('Error deleting order:', error.message);
-                        return next(errors.mapError(error, 500, "Error deleting order", next));
+                        return next(errors.mapError(500, "Error deleting order"));
                     }
 
                     // Update table status
-                    const updateTableSQL = `UPDATE Tables SET table_status = 'empty',update_at=? WHERE table_ID = ?`;
-                    db.query(updateTableSQL, [id, currentDate], (error) => {
+                    const updateTableSQL = `UPDATE Tables SET table_status = 'empty', update_at = ? WHERE table_ID = ?`;
+                    db.query(updateTableSQL, [currentDate, id], (error) => { // Fixed order
                         if (error) {
                             console.error('Error updating table status:', error.message);
-                            return next(errors.mapError(error, 500, "Error updating table status", next));
+                            return next(errors.mapError(500, "Error updating table status"));
                         }
 
                         return res.status(200).json({ status: "200", message: "Successfully canceled order" });
@@ -85,7 +87,7 @@ exports.cancelOrder = (req, res, next) => {
 
     } catch (error) {
         console.error(error.message);
-        return next(errors.mapError(500, "Internal server error", next));
+        return next(errors.mapError(500, "Internal server error"));
     }
 };
 
@@ -153,7 +155,6 @@ const insertMenuItem = (orders_ID, food_ID, quantity, description, res, next) =>
     });
 };
 
-
 exports.getMenuItem = (req, res, next) => {
     let { id } = req.params;
     id = Number(id);
@@ -163,39 +164,51 @@ exports.getMenuItem = (req, res, next) => {
     }
 
     try {
-        const newOrderStatus = "unpaid"
-        const sql = `SELECT order_ID FROM Orders WHERE table_ID=? AND order_status=?  `
+        const newOrderStatus = "unpaid";
+        const sql = `
+            SELECT O.order_ID, T.table_name
+            FROM Orders O
+            JOIN Tables T ON O.table_ID = T.table_ID
+            WHERE O.table_ID = ? AND O.order_status = ?
+        `;
+
         db.query(sql, [id, newOrderStatus], (error, results) => {
             if (error) {
                 console.error("Error fetching order id:", error.message);
-                return errors.mapError(error, 500, "Error fetching order id", next);
+                return errors.mapError(500, "Error fetching order id", next);
             }
-            const newOrder_ID = results[0].order_ID;
-            const sql = `
-            SELECT M.menu_items_ID, F.food_name, F.price, M.quantity
-            FROM Menu_items M
-            LEFT JOIN Orders O ON M.order_ID = O.order_ID
-            LEFT JOIN Foods F ON M.food_ID = F.food_ID
-            WHERE O.order_ID = ?`;
 
-            db.query(sql, [newOrder_ID], (error, results) => {
+            if (results.length === 0) {
+                return errors.mapError(404, "No unpaid orders found for the given table", next);
+            }
+
+            const { order_ID: newOrder_ID, table_name } = results[0];
+
+            const menuSql = `
+                SELECT M.menu_items_ID, F.food_name, F.price, M.quantity
+                FROM Menu_items M
+                LEFT JOIN Orders O ON M.order_ID = O.order_ID
+                LEFT JOIN Foods F ON M.food_ID = F.food_ID
+                WHERE O.order_ID = ?
+            `;
+
+            db.query(menuSql, [newOrder_ID], (error, menuResults) => {
                 if (error) {
                     console.error("Error fetching menu item:", error.message);
-                    return errors.mapError(error, 500, "Error fetching menu item", next);
+                    return errors.mapError(500, "Error fetching menu item", next);
                 }
 
                 // Ensure all prices are numbers and handle NULL values
-                const totalPrice = results.reduce((acc, item) => acc + ((item.price || 0) * item.quantity), 0);
+                const totalPrice = menuResults.reduce((acc, item) => acc + ((item.price || 0) * item.quantity), 0);
 
                 return res.status(200).json({
                     status: "200",
                     message: "Successfully fetched menu items and total quantity",
+                    table_name: table_name,
                     totalPrice: totalPrice,
-                    data: results,
+                    data: menuResults,
                 });
             });
-
-
         });
     } catch (error) {
         console.error(error.message);
