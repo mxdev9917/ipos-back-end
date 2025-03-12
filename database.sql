@@ -110,12 +110,14 @@ CREATE TABLE `Menu_items` (
   `food_ID` INT NOT NULL,
   `quantity` INT NOT NULL,
   `description` VARCHAR(100),
+  `menu_item_status` VARCHAR(20) DEFAULT 'pending',
   `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`menu_items_ID`),
   FOREIGN KEY (`order_ID`) REFERENCES `Orders`(`order_ID`) ON DELETE CASCADE,
   FOREIGN KEY (`food_ID`) REFERENCES `Foods`(`food_ID`)
 );
+
 
 
 CREATE TABLE `Rates`(
@@ -129,3 +131,5 @@ CREATE TABLE `Rates`(
   PRIMARY KEY (`rate_ID`),
   FOREIGN KEY (`restaurant_ID`) REFERENCES `Restaurants` (`restaurant_ID`) ON DELETE CASCADE
 );
+
+

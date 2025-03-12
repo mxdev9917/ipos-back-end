@@ -11,8 +11,9 @@ const foodService = require('./services/foodService');
 const gallery = require('./services/galleryService')
 const orderService = require('./services/orderService');
 const rateService = require('./services/exchangeRateSever')
-const reportService=require('./services/reportService');
-const dashboardService=require('./services/dashboard');
+const reportService = require('./services/reportService');
+const dashboardService = require('./services/dashboard');
+const kitchenService = require('./services/kitchenService');
 
 // const { verifyToken } = require('./utils/encrypt');
 
@@ -137,19 +138,22 @@ Router.route('/rate')
 Router.route('/rate/:id')
     .get(middlewares.checkID, rateService.gatRate)
     .delete(middlewares.checkID, rateService.deleteRate)
-    .patch(middlewares.checkBodyNull,middlewares.checkID,rateService.editRate)
+    .patch(middlewares.checkBodyNull, middlewares.checkID, rateService.editRate)
 Router.route('/rate/status/:id')
     .patch(middlewares.checkBodyNull, middlewares.checkID, rateService.editStatusRate)
-    .get(middlewares.checkID,rateService.getRateByStatus)
+    .get(middlewares.checkID, rateService.getRateByStatus)
 
 
 Router.route("/report/food/sale/:id")
-.get(middlewares.checkBodyNull,middlewares.checkID,reportService.getFoodSales)
+    .get(middlewares.checkBodyNull, middlewares.checkID, reportService.getFoodSales)
 module.exports = Router;
 
 Router.route("/dashboard/:id")
-.post(middlewares.checkBodyNull,middlewares.checkID,dashboardService.getDashboard)
+    .post(middlewares.checkBodyNull, middlewares.checkID, dashboardService.getDashboard)
 
+
+Router.route("/kitchen/menu/:id")
+    .post(middlewares.checkID, middlewares.checkBodyNull, kitchenService.getMenuAll)
 
 
 
