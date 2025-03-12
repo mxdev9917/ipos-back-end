@@ -7,16 +7,18 @@ exports.getMenuAll = (req, res, next) => {
     if (Number.isNaN(id)) {
         return next(errors.mapError(400, "Request parameter invalid type"));
     }
-    const { page, limit, status } = req.body;
+    let body = req.body;
+    const { status } = body;
+    const { page, limit } = req.query;
     const pageNumber = page ? Number(page) : 1;
     const pageLimit = limit ? Number(limit) : 100;
     const currentDate = new Date().toISOString().split("T")[0]; // Format to YYYY-MM-DD
-    // const status = "pending";
+    //  const status = "pending";
 
     
     try {
         const sql = `
-            SELECT F.food_name, F.food_img, M.quantity, M.description, T.table_name
+            SELECT M.menu_items_ID,F.food_name, F.food_img, M.quantity, M.description, T.table_name
             FROM Menu_items M
             JOIN Orders O ON O.order_ID = M.order_ID
             JOIN Foods F ON F.food_ID = M.food_ID
