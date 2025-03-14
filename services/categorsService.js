@@ -5,7 +5,7 @@ const upload = require('../utils/multerConfig');
 const insertPathImg = require("../utils/insertPathImg");
 exports.gatAllCategory = (req, res, next) => {
     let { id } = req.params;
-    id = Number(id);  // Convert id to a number
+    id = Number(id);  // Convert id to a numbersa
     if (Number.isNaN(id)) {
         return errors.mapError(400, "Request parameter invalid type", next);  // Return a 400 for invalid ID
     }
@@ -99,7 +99,7 @@ exports.getCategoryByStatus = (req, res, next) => {
 
     } catch (error) {
         console.log(error.message);
-        errors.mapError(500, 'Internal server error', next);
+        errors.mapError(500, 'Internal server error', next); 
     }
 
 
@@ -110,8 +110,8 @@ exports.createCategory = (req, res, next) => {
     upload.single("category_img")(req, res, async (err) => {
         if (err) {
             console.error("File upload error:", err);
-            return res.status(400).json({ message: err.message });
-        }
+            return res.status(400).json({ message: err.message }); 
+        } 
 
         const { restaurant_ID, category, gallery_path } = req.body;
         const category_img = req.file ? `/images/food_img/${req.file.filename}` : gallery_path || null;

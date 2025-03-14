@@ -154,6 +154,10 @@ Router.route("/dashboard/:id")
 
 Router.route("/kitchen/menu/:id")
     .post(middlewares.checkID, middlewares.checkBodyNull, kitchenService.getMenuAll)
+    .patch(middlewares.checkBodyNull, middlewares.checkID, kitchenService.statusMenuItem)
+
+    
+
 
 
 

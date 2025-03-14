@@ -118,7 +118,7 @@ exports.createMenuItem = (req, res, next) => {
                     if (menuResults.length > 0) {
                         let currentQty = Number(menuResults[0].quantity);
                         let newQty = currentQty + Number(quantity);
-                        const updateSql = `UPDATE Menu_items SET quantity = ?, description = ?,currentDate=? WHERE order_ID = ? AND food_ID = ?`;
+                        const updateSql = `UPDATE Menu_items SET quantity = ?, description = ?, updated_at = ? WHERE order_ID = ? AND food_ID = ?`;
                         db.query(updateSql, [newQty, description, currentDate, orders_ID, food_ID], (updateError) => {
                             if (updateError) {
                                 console.error('Error updating menu item:', updateError.message);
@@ -126,6 +126,7 @@ exports.createMenuItem = (req, res, next) => {
                             }
                             return res.status(200).json({ status: "200", message: 'Successfully Updated' });
                         });
+                        
                     } else {
                         // Insert new menu item
                         insertMenuItem(orders_ID, food_ID, quantity, description, res, next);
