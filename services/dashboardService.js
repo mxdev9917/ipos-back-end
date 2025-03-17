@@ -11,7 +11,7 @@ exports.getDashboard = async (req, res, next) => {
 
     try {
         await updateTableStatusEmpty(id, currentDate);
-        
+
         const [
             topProducts,
             totalSales,
@@ -136,7 +136,7 @@ const timeSale = (restaurantId, currentDate) => {
                 console.error("[timeSale] Error fetching time sales:", error);
                 return reject(new Error("Error fetching time sales"));
             }
-            resolve(results); 
+            resolve(results);
         });
     });
 };
@@ -212,6 +212,7 @@ const timeTable = (restaurantId, currentDate) => {
     });
 };
 
+
 const orderStatus = (restaurantId, currentDate) => {
     return new Promise((resolve, reject) => {
         const query = `
@@ -235,7 +236,11 @@ const MenuItem = (restaurantId, currentDate) => {
     return new Promise((resolve, reject) => {
         const query = `
             SELECT 
-                SUM(m.quantity) AS qty
+                SUM(m.quantity) AS qty,
+                SUM(CASE WHEN m.menu_item_status = 'pending' THEN m.quantity ELSE 0 END) AS pending_qty,
+                SUM(CASE WHEN m.menu_item_status = 'completed' THEN m.quantity ELSE 0 END) AS completed_qty,
+                SUM(CASE WHEN m.menu_item_status = 'cancelled' THEN m.quantity ELSE 0 END) AS cancelled_qty,
+                SUM(CASE WHEN m.menu_item_status = 'cooking' THEN m.quantity ELSE 0 END) AS cooking_qty
             FROM Menu_items m
             JOIN Orders o ON m.order_ID = o.order_ID
             WHERE o.restaurant_ID = ? AND DATE(m.updated_at) = ?;
