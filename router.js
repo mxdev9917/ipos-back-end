@@ -12,7 +12,7 @@ const gallery = require('./services/galleryService')
 const orderService = require('./services/orderService');
 const rateService = require('./services/exchangeRateSever')
 const reportService = require('./services/reportService');
-const dashboardService = require('./services/dashboard');
+const dashboardService = require('./services/dashboardService');
 const kitchenService = require('./services/kitchenService');
 
 // const { verifyToken } = require('./utils/encrypt');

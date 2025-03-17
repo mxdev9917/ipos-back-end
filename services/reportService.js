@@ -34,7 +34,7 @@ exports.getFoodSales = (req, res, next) => {
                 WHERE 
                     r.restaurant_ID = ? AND o.order_status = ?
                 GROUP BY 
-                    mi.food_ID, f.food_name, f.price, c.category
+                    mi.food_ID
                 ORDER BY 
                     mi.food_ID
                 LIMIT ? OFFSET ?
