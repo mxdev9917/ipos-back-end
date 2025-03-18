@@ -85,6 +85,8 @@ Router.route('/category')
     .patch(middlewares.checkBodyNull, verifyToken.verifyToken, middlewares.checkID, categoryService.editCategory)
 Router.route('/category/:id')
     .get(middlewares.checkID, verifyToken.verifyToken, categoryService.getCategoryById)
+    Router.route('/category/name/:id')
+    .post(middlewares.checkID,middlewares.checkBodyNull, verifyToken.verifyToken, categoryService.gatCategoryByName)
 
     .delete(middlewares.checkID, verifyToken.verifyToken, categoryService.deleteCategory)
 Router.route('/category/status/:id')

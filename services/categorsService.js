@@ -47,6 +47,38 @@ exports.gatAllCategory = (req, res, next) => {
 
 
 }
+exports.gatCategoryByName = (req, res, next) => {
+    let { id } = req.params;
+    id = Number(id);  // Convert id to a numbersa
+    if (Number.isNaN(id)) {
+        return errors.mapError(400, "Request parameter invalid type", next);  // Return a 400 for invalid ID
+    }
+    const { category } = req.body;
+console.log({category});
+
+    try {
+        const checkSql = `SELECT category_ID, category,category_status,category_image,category_status, DATE_FORMAT(created_at, '%d-%m-%Y') AS created_at FROM Categories WHERE restaurant_ID = ? AND  category =? `;
+        db.query(checkSql, [id,category], (error, results) => {
+            if (error) {
+                console.error('Error fetching category:', error.message);
+                errors.mapError(500, "Internal server error", next);
+                return;
+            }
+            if (results.length <= 0) {
+                return res.status(409).json({ message: `Not found Category ` });
+            }
+            return res.status(200).json({ status: "200", message: 'Category fetching successfully', data: results });
+
+        });
+    } catch (error) {
+        console.log(error.message);
+        errors.mapError(500, 'Internal server error', next);
+    }
+
+
+
+
+}
 exports.getCategoryById = (req, res, next) => {
     let { id } = req.params;
     id = Number(id);  // Convert id to a number
@@ -99,7 +131,7 @@ exports.getCategoryByStatus = (req, res, next) => {
 
     } catch (error) {
         console.log(error.message);
-        errors.mapError(500, 'Internal server error', next); 
+        errors.mapError(500, 'Internal server error', next);
     }
 
 
@@ -110,8 +142,8 @@ exports.createCategory = (req, res, next) => {
     upload.single("category_img")(req, res, async (err) => {
         if (err) {
             console.error("File upload error:", err);
-            return res.status(400).json({ message: err.message }); 
-        } 
+            return res.status(400).json({ message: err.message });
+        }
 
         const { restaurant_ID, category, gallery_path } = req.body;
         const category_img = req.file ? `/images/food_img/${req.file.filename}` : gallery_path || null;
