@@ -236,7 +236,7 @@ const MenuItem = (restaurantId, currentDate) => {
     return new Promise((resolve, reject) => {
         const query = `
             SELECT 
-                SUM(m.quantity) AS qty,
+                 COALESCE(SUM(m.quantity), 0) AS qty,
                 SUM(CASE WHEN m.menu_item_status = 'pending' THEN m.quantity ELSE 0 END) AS pending_qty,
                 SUM(CASE WHEN m.menu_item_status = 'completed' THEN m.quantity ELSE 0 END) AS completed_qty,
                 SUM(CASE WHEN m.menu_item_status = 'cancelled' THEN m.quantity ELSE 0 END) AS cancelled_qty,
