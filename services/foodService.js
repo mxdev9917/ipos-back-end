@@ -88,7 +88,7 @@ exports.getByIdCategory = (req, res, next) => {
     if (Number.isNaN(id)) {
         return errors.mapError(400, "Request parameter invalid type", next);
     }
-    const status = "active"; 
+    const status = "active";
     const sql = `
         SELECT  p.food_ID, p.food_name, p.price, c.category_ID, c.category, p.food_img
         FROM Foods p
@@ -107,7 +107,7 @@ exports.getByIdCategory = (req, res, next) => {
             message: "Get all foods successfully",
             data: results,
         });
-       
+
     });
 };
 
@@ -326,6 +326,75 @@ exports.getFoodByStatus = (req, res, next) => {
         });
     });
 };
+
+exports.fetchFoodByStatus = (req, res, next) => {
+    let { id } = req.params;
+    id = Number(id);
+    if (Number.isNaN(id)) {
+        return errors.mapError(400, "Request parameter invalid type", next);
+    }
+
+    const { food_status } = req.body;
+    const { page, limit } = req.query;
+    const pagenumber = page ? Number(page) : 1;
+    const pageLimit = limit ? Number(limit) : 100;
+    const offset = (pagenumber - 1) * pageLimit;  // Fixed offset calculation
+
+    const sql = `SELECT food_ID,food_name,price,food_status,food_img FROM Foods WHERE restaurant_ID = ? AND food_status = ? LIMIT ? OFFSET ?;`;
+
+    db.query(sql, [id, food_status, pageLimit, offset], (error, results) => {
+        if (error) {
+            console.error('Error fetching Food:', error.message);
+            return errors.mapError(500, "Internal server error", next);
+        }
+
+        const countSql = `SELECT COUNT(*) AS total FROM Foods WHERE restaurant_ID = ? AND food_status = ?;`;
+        db.query(countSql, [id, food_status], (countError, countResults) => {
+            if (countError) {
+                console.error('Error fetching Count Food:', countError.message);
+                return errors.mapError(500, "Internal server error", next);
+            }
+
+            const totalRecords = countResults[0].total;
+            return res.status(200).json({
+                status: "200",
+                message: "Get all Foods successfully",
+                total_item: totalRecords,
+                data: results,
+            });
+        });
+    });
+};
+
+
+exports.fetchFoodByName = (req, res, next) => {
+    let { id } = req.params;
+    id = Number(id);
+    if (Number.isNaN(id)) {
+        return errors.mapError(400, "Request parameter invalid type", next);
+    }
+    const { food_name } = req.body;
+    console.log(food_name);
+    
+    const sql = `SELECT food_ID,food_name,price,food_status,food_img FROM Foods WHERE restaurant_ID = ? AND food_name = ? ;`;
+
+    db.query(sql, [id, food_name], (error, results) => {
+        if (error) {
+            console.error('Error fetching Food:', error.message);
+            return errors.mapError(500, "Internal server error", next);
+        }
+        return res.status(200).json({
+            status: "200",
+            message: "Get all Foods successfully",
+            data: results,
+        });
+
+    });
+};
+
+
+
+
 
 
 

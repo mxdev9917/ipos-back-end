@@ -217,3 +217,55 @@ exports.getAlltableByStatusBusy = (req, res, next) => {
     }
 }
 
+exports.getTableByName = (req, res, next) => {
+    try {
+        let { id } = req.params;
+        id = Number(id); 
+        if (Number.isNaN(id)) {
+            return errors.mapError(400, "Request parameter invalid type", next);  // Return a 400 for invalid ID
+        }
+        const {table_name}=req.body;
+        const sql = `SELECT table_ID,table_name,table_status  FROM Tables  WHERE restaurant_ID = ? AND table_name=?`
+        db.query(sql, [id,table_name], (error, results) => {
+            if (error) {
+                console.error('Error fetching Tables:', error.message);
+                errors.mapError(500, "Internal server error", next);
+                return;
+            }
+            return res.status(200).json({ status: "200", message: 'Fetching Tables  successfully', data: results });
+        });
+    } catch (error) {
+        console.log(error.message);
+        errors.mapError(500, 'Internal server error', next);
+    }
+}
+// exports.getTableByStatus = (req, res, next) => {
+//     try {
+//         let { id } = req.params;
+//         id = Number(id);
+//         if (Number.isNaN(id)) {
+//             return errors.mapError(400, "Request parameter invalid type", next);  // Return a 400 for invalid ID
+//         }
+//         const { table_status } = req.body;
+
+//         // Check if table_status is provided, if not, use 'disable' as a default value to exclude
+//         const statusCondition = table_status || 'disabled'; 
+
+//         const sql = `SELECT table_ID, table_name, table_status FROM Tables WHERE restaurant_ID = ? AND table_status <> ?`;
+        
+//         db.query(sql, [id, statusCondition], (error, results) => {
+//             if (error) {
+//                 console.error('Error fetching Tables:', error.message);
+//                 errors.mapError(500, "Internal server error", next);
+//                 return;
+//             }
+//             return res.status(200).json({ status: "200", message: 'Fetching Tables successfully', data: results });
+//         });
+//     } catch (error) {
+//         console.log(error.message);
+//         errors.mapError(500, 'Internal server error', next);
+//     }
+// };
+
+
+

@@ -43,19 +43,14 @@ exports.gatAllCategory = (req, res, next) => {
         console.log(error.message);
         errors.mapError(500, 'Internal server error', next);
     }
-
-
-
 }
-exports.gatCategoryByName = (req, res, next) => {
+exports.fetchCategoryByName = (req, res, next) => {
     let { id } = req.params;
     id = Number(id);  // Convert id to a numbersa
     if (Number.isNaN(id)) {
         return errors.mapError(400, "Request parameter invalid type", next);  // Return a 400 for invalid ID
     }
     const { category } = req.body;
-console.log({category});
-
     try {
         const checkSql = `SELECT category_ID, category,category_status,category_image,category_status, DATE_FORMAT(created_at, '%d-%m-%Y') AS created_at FROM Categories WHERE restaurant_ID = ? AND  category =? `;
         db.query(checkSql, [id,category], (error, results) => {
@@ -74,11 +69,65 @@ console.log({category});
         console.log(error.message);
         errors.mapError(500, 'Internal server error', next);
     }
-
-
-
-
 }
+exports.fetchCategoryByStatus = (req, res, next) => {
+    let { id } = req.params;
+    id = Number(id);  // Convert id to a number
+    if (Number.isNaN(id)) {
+        return errors.mapError(400, "Request parameter invalid type", next);  // Return a 400 for invalid ID
+    }
+
+    const { category_status } = req.body;
+    const { page, limit } = req.query;
+    const pageNumber = page ? Number(page) : 1;
+    const pageLimit = limit ? Number(limit) : 100;
+
+    if (!category_status) {
+        return errors.mapError(400, "Category status is required", next);
+    }
+
+    try {
+        const offset = (pageNumber - 1) * pageLimit; // Fixed offset calculation
+        const checkSql = `
+            SELECT category_ID, category, category_status, category_image 
+            FROM Categories 
+            WHERE restaurant_ID = ? AND category_status = ? 
+            LIMIT ? OFFSET ?;
+        `;
+
+        db.query(checkSql, [id, category_status, pageLimit, offset], (error, results) => {
+            if (error) {
+                console.error('Error fetching category:', error.message);
+                return errors.mapError(500, "Internal server error", next);
+            }
+
+            const countSql = `
+                SELECT COUNT(*) as total 
+                FROM Categories 
+                WHERE restaurant_ID = ? AND category_status = ?;
+            `;
+
+            db.query(countSql, [id, category_status], (countError, countResults) => { // Fixed missing parameter
+                if (countError) {
+                    console.error('Error counting Category:', countError.message);
+                    return errors.mapError(500, "Internal server error", next);
+                }
+
+                const totalRecords = countResults[0].total;
+                return res.status(200).json({
+                    status: "200",
+                    message: "Get category successfully",
+                    total_item: totalRecords,
+                    data: results
+                });
+            });
+        });
+    } catch (error) {
+        console.error("Unexpected error:", error.message);
+        return errors.mapError(500, "Internal server error", next);
+    }
+};
+
 exports.getCategoryById = (req, res, next) => {
     let { id } = req.params;
     id = Number(id);  // Convert id to a number
