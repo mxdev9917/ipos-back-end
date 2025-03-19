@@ -151,20 +151,25 @@ Router.route('/rate/status/:id')
     .post(middlewares.checkBodyNull, middlewares.checkID, verifyToken.verifyToken, rateService.fetchRateByStatus)
 
 
-Router.route("/report/food/sale/:id")
+Router.route('/report/food/sale/:id')
     .get(middlewares.checkBodyNull, middlewares.checkID, verifyToken.verifyToken, reportService.getFoodSales)
-module.exports = Router;
 
-Router.route("/dashboard/:id")
+Router.route('/report/food/sale/category/:id')
+    .post(middlewares.checkBodyNull, middlewares.checkID, verifyToken.verifyToken, reportService.getFoodSalesByCategory)
+    Router.route('/report/food/sale/date/:id')
+    .post(middlewares.checkBodyNull, middlewares.checkID, verifyToken.verifyToken, reportService.getFoodSalesByDate)
+
+
+Router.route('/dashboard/:id')
     .post(middlewares.checkBodyNull,middlewares.checkID, verifyToken.verifyToken, dashboardService.getDashboard)
 
 
-Router.route("/kitchen/menu/:id")
+Router.route('/kitchen/menu/:id')
     .post(middlewares.checkID, middlewares.checkBodyNull, verifyToken.verifyToken, kitchenService.getMenuAll)
     .patch(middlewares.checkBodyNull, middlewares.checkID, verifyToken.verifyToken, kitchenService.statusMenuItem)
 
     
-
+    module.exports = Router;
 
 
 
