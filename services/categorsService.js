@@ -53,7 +53,7 @@ exports.fetchCategoryByName = (req, res, next) => {
     const { category } = req.body;
     try {
         const checkSql = `SELECT category_ID, category,category_status,category_image,category_status, DATE_FORMAT(created_at, '%d-%m-%Y') AS created_at FROM Categories WHERE restaurant_ID = ? AND  category =? `;
-        db.query(checkSql, [id,category], (error, results) => {
+        db.query(checkSql, [id, category], (error, results) => {
             if (error) {
                 console.error('Error fetching category:', error.message);
                 errors.mapError(500, "Internal server error", next);
@@ -194,7 +194,7 @@ exports.createCategory = (req, res, next) => {
             return res.status(400).json({ message: err.message });
         }
 
-        const { restaurant_ID, category, gallery_path } = req.body;
+        const { restaurant_ID, category, gallery_path, category_kitchen_status, category_bar_status } = req.body;
         const category_img = req.file ? `/images/food_img/${req.file.filename}` : gallery_path || null;
 
         // Validate that restaurant_ID and category are provided
@@ -221,8 +221,8 @@ exports.createCategory = (req, res, next) => {
                 }
 
                 // Insert the new category into the database
-                const sql = `INSERT INTO Categories (restaurant_ID,category,category_image) VALUES (?, ?, ?)`;
-                db.query(sql, [restaurant_ID, category, category_img], (error, results) => {
+                const sql = `INSERT INTO Categories (restaurant_ID,category,category_image,category_kitchen_status,category_bar_status) VALUES (?, ?, ?,?,?)`;
+                db.query(sql, [restaurant_ID, category, category_img, category_kitchen_status, category_bar_status], (error, results) => {
                     if (error) {
                         console.error('Error inserting category:', error.message);
                         return errors.mapError(500, "Internal server error", next);
@@ -254,7 +254,8 @@ exports.editCategory = (req, res, next) => {
             return res.status(400).json({ message: err.message });
         }
 
-        const { category_ID, category, update_at, gallery_path } = req.body;
+        const { category_ID, category, update_at, gallery_path, category_kitchen_status, category_bar_status } = req.body;
+        console.log({ category_ID, category, update_at, gallery_path, category_kitchen_status, category_bar_status })
         let category_img = req.file ? `/images/food_img/${req.file.filename}` : gallery_path || null;
 
         // Validate that category is provided
@@ -269,12 +270,11 @@ exports.editCategory = (req, res, next) => {
                     await insertPathImg(category_img);
                 }
 
-                const sql = `UPDATE Categories SET category=?, update_at=?, category_image=? WHERE category_ID=?`;
-                db.query(sql, [category, update_at, category_img, category_ID], (error) => {
+                const sql = `UPDATE Categories SET category=?, update_at=?, category_image=?, category_kitchen_status=?, category_bar_status=? WHERE category_ID=?`;
+                db.query(sql, [category, update_at, category_img, category_kitchen_status, category_bar_status, category_ID], (error) => {
                     if (error) {
                         console.error('Error updating category:', error.message);
-                        errors.mapError(500, "Internal server error", next);
-                        return;
+                        return res.status(500).json({ message: "Internal server error" });
                     }
                     return res.status(200).json({
                         status: "200",
@@ -283,12 +283,11 @@ exports.editCategory = (req, res, next) => {
                 });
             } else {
                 // Handle case where category_img is not provided
-                const sql = `UPDATE Categories SET category=?, update_at=? WHERE category_ID=?`;
-                db.query(sql, [category, update_at, category_ID], (error) => {
+                const sql = `UPDATE Categories SET category=?, update_at=?, category_kitchen_status=?, category_bar_status=? WHERE category_ID=?`;
+                db.query(sql, [category, update_at, category_kitchen_status, category_bar_status, category_ID], (error) => {
                     if (error) {
                         console.error('Error updating category:', error.message);
-                        errors.mapError(500, "Internal server error", next);
-                        return;
+                        return res.status(500).json({ message: "Internal server error" });
                     }
                     return res.status(200).json({
                         status: "200",

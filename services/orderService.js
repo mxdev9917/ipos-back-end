@@ -92,7 +92,7 @@ exports.cancelOrder = (req, res, next) => {
 };
 
 exports.createMenuItem = (req, res, next) => {
-    const { table_ID, food_ID, quantity, description } = req.body;
+    const { table_ID, food_ID, quantity, description,category_ID } = req.body;
     try {
         // Fetch order ID first
         const currentDate = new Date();
@@ -118,8 +118,8 @@ exports.createMenuItem = (req, res, next) => {
                     if (menuResults.length > 0) {
                         let currentQty = Number(menuResults[0].quantity);
                         let newQty = currentQty + Number(quantity);
-                        const updateSql = `UPDATE Menu_items SET quantity = ?, description = ?, updated_at = ? WHERE order_ID = ? AND food_ID = ?`;
-                        db.query(updateSql, [newQty, description, currentDate, orders_ID, food_ID], (updateError) => {
+                        const updateSql = `UPDATE Menu_items SET quantity = ?, description = ?, updated_at = ?,category_ID=? WHERE order_ID = ? AND food_ID = ?`;
+                        db.query(updateSql, [newQty, description, currentDate,category_ID, orders_ID, food_ID], (updateError) => {
                             if (updateError) {
                                 console.error('Error updating menu item:', updateError.message);
                                 return errors.mapError(updateError, 500, "Error updating menu item", next);
@@ -129,7 +129,7 @@ exports.createMenuItem = (req, res, next) => {
                         
                     } else {
                         // Insert new menu item
-                        insertMenuItem(orders_ID, food_ID, quantity, description, res, next);
+                        insertMenuItem(orders_ID, food_ID, quantity, description,category_ID, res, next);
                         const table_status = "busy";
                         await updateTableStatus(table_status, table_ID, next)
                     }
@@ -144,10 +144,10 @@ exports.createMenuItem = (req, res, next) => {
         return errors.mapError(error, 500, "Internal server error", next);
     }
 }
-const insertMenuItem = (orders_ID, food_ID, quantity, description, res, next) => {
+const insertMenuItem = (orders_ID, food_ID, quantity, description,category_ID, res, next) => {
     const currentDate = new Date();
-    const insertSql = `INSERT INTO Menu_items (order_ID, food_ID, quantity, description,created_at) VALUES (?, ?, ?, ?,?)`;
-    db.query(insertSql, [orders_ID, food_ID, quantity, description, currentDate], (insertError) => {
+    const insertSql = `INSERT INTO Menu_items (order_ID, food_ID, quantity, description,created_at,category_ID) VALUES (?,?, ?, ?, ?,?)`;
+    db.query(insertSql, [orders_ID, food_ID, quantity, description, currentDate,category_ID], (insertError) => {
         if (insertError) {
             console.error('Error inserting menu item:', insertError.message);
             return errors.mapError(insertError, 500, "Error inserting menu item", next);

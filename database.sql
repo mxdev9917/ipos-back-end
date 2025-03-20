@@ -58,13 +58,14 @@ CREATE TABLE `Users` (
   CONSTRAINT `Users_ibfk_1` FOREIGN KEY (`restaurant_ID`) REFERENCES `Restaurants` (`restaurant_ID`) ON DELETE CASCADE
 );
 
-
 CREATE TABLE `Categories` (
   `category_ID` int AUTO_INCREMENT NOT NULL,
   `restaurant_ID` int NOT NULL,
   `category` varchar(100) NOT NULL,
   `category_status` varchar(20) DEFAULT 'active',
   `category_image` varchar(100) NOT NULL,
+  `category_kitchen_status` varchar(10) NOT NULL,
+  `category_bar_status` varchar(10) NOT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `update_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`category_ID`),
@@ -91,6 +92,7 @@ CREATE TABLE `PathImg`(
   pathImg_name VARCHAR(100),
   PRIMARY KEY (`pathImg_ID`),
 );
+
 CREATE TABLE `Orders` (
   `order_ID` INT NOT NULL AUTO_INCREMENT,
   `table_ID` INT NOT NULL,
@@ -101,13 +103,14 @@ CREATE TABLE `Orders` (
   `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`order_ID`),
-  FOREIGN KEY (`restaurant_ID`) REFERENCES `Restaurants` (`restaurant_ID`) 
+  FOREIGN KEY (`restaurant_ID`) REFERENCES `Restaurants` (`restaurant_ID`)
 );
 
 CREATE TABLE `Menu_items` (
   `menu_items_ID` INT NOT NULL AUTO_INCREMENT,
   `order_ID` INT NOT NULL,
   `food_ID` INT NOT NULL,
+  `category_ID` INT NOT NULL,
   `quantity` INT NOT NULL,
   `description` VARCHAR(100),
   `menu_item_status` VARCHAR(20) DEFAULT 'pending',
@@ -115,10 +118,9 @@ CREATE TABLE `Menu_items` (
   `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`menu_items_ID`),
   FOREIGN KEY (`order_ID`) REFERENCES `Orders`(`order_ID`) ON DELETE CASCADE,
-  FOREIGN KEY (`food_ID`) REFERENCES `Foods`(`food_ID`)
+  FOREIGN KEY (`food_ID`) REFERENCES `Foods`(`food_ID`),
+  FOREIGN KEY (`category_ID`) REFERENCES `Categories` (`category_ID`) ON DELETE CASCADE
 );
-
-
 
 CREATE TABLE `Rates`(
   `rate_ID` INT NOT NULL AUTO_INCREMENT,
@@ -131,5 +133,3 @@ CREATE TABLE `Rates`(
   PRIMARY KEY (`rate_ID`),
   FOREIGN KEY (`restaurant_ID`) REFERENCES `Restaurants` (`restaurant_ID`) ON DELETE CASCADE
 );
-
-

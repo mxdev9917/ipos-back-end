@@ -301,7 +301,7 @@ exports.getFoodByStatus = (req, res, next) => {
     const pageLimit = limit ? Number(limit) : 100;
     const offset = (pagenumber - 1) * pageLimit;  // Fixed offset calculation
 
-    const sql = `SELECT food_ID,food_name,price,food_img FROM Foods WHERE restaurant_ID = ? AND food_status = ? LIMIT ? OFFSET ?;`;
+    const sql = `SELECT food_ID,food_name,price,category_ID,food_img FROM Foods WHERE restaurant_ID = ? AND food_status = ? LIMIT ? OFFSET ?;`;
 
     db.query(sql, [id, status, pageLimit, offset], (error, results) => {
         if (error) {
@@ -358,7 +358,7 @@ exports.fetchFoodByStatus = (req, res, next) => {
             const totalRecords = countResults[0].total;
             return res.status(200).json({
                 status: "200",
-                message: "Get all Foods successfully",
+                message: "Get all Foods  successfully",
                 total_item: totalRecords,
                 data: results,
             });

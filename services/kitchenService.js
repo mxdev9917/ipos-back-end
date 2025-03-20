@@ -9,11 +9,15 @@ exports.getMenuAll = (req, res, next) => {
     }
     let body = req.body;
 
-    const { status,ck } = body;
-    const { page, limit } = req.query;
+    const { status, ck } = body;
+    const { page, limit } = req.body;
     const pageNumber = page ? Number(page) : 1;
     const pageLimit = limit ? Number(limit) : 100;
     const currentDate = new Date().toISOString().split("T")[0]; // Format to YYYY-MM-DD
+
+    console.log({ status, ck, page, limit });
+
+
     try {
         const sql = `
             SELECT M.menu_items_ID,M.menu_item_status,F.food_name, F.food_img, M.quantity, M.description, T.table_name
@@ -21,14 +25,15 @@ exports.getMenuAll = (req, res, next) => {
             JOIN Orders O ON O.order_ID = M.order_ID
             JOIN Foods F ON F.food_ID = M.food_ID
             JOIN Tables T ON T.table_ID = O.table_ID
+            JOIN Categories C ON C.category_ID = M.category_ID
             WHERE O.restaurant_ID = ? 
-                AND DATE(M.created_at) = ? 
-                AND (M.menu_item_status = ? OR M.menu_item_status = ?)
+              AND (M.menu_item_status = ? OR M.menu_item_status = ?)
+              AND C.category_kitchen_status = ?
             LIMIT ?
             OFFSET ?;
     `;
         const offset = (pageNumber - 1) * pageLimit;
-        db.query(sql, [id, currentDate, status,ck, pageLimit, offset], (error, results) => {
+        db.query(sql, [id, status, ck,"true", pageLimit, offset], (error, results) => {
             if (error) {
                 console.error("Error fetching menu items:", error.message);
                 return next(errors.mapError(500, "Error fetching menu items"));
@@ -39,11 +44,12 @@ exports.getMenuAll = (req, res, next) => {
                   JOIN Orders O ON O.order_ID = M.order_ID
                   JOIN Foods F ON F.food_ID = M.food_ID
                   JOIN Tables T ON T.table_ID = O.table_ID
+                  JOIN Categories C ON C.category_ID = M.category_ID
                   WHERE O.restaurant_ID = ? 
-                     AND DATE(M.created_at) = ? 
-                     AND M.menu_item_status = ?;
+                    AND M.menu_item_status = ?
+                    AND C.category_kitchen_status = ?
                      `;
-            db.query(countSql, [id, currentDate, status], (countError, countResults) => {
+            db.query(countSql, [id, status,"true" ], (countError, countResults) => {
                 if (countError) {
                     console.error('Error counting Foods:', countError.message); // Corrected this
                     return errors.mapError(500, "Internal server error", next);
