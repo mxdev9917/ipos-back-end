@@ -22,7 +22,7 @@ Router.param('id', middlewares.checkID); // check pararm ID
 // all router Gallery 
 
 Router.route('/gallery')
-    .get(verifyToken.verifyToken,gallery.getAllGallery)
+    .get(verifyToken.verifyToken, gallery.getAllGallery)
 
 // all router owner
 Router.route('/').get(ownerService.Ownertest)
@@ -30,7 +30,7 @@ Router.route('/owner/signin')
     .post(middlewares.checkBodyNull, ownerService.signInOwner)
 Router.route('/owner')
     .get(verifyToken.verifyToken, ownerService.getAllOwner)
-    .post(middlewares.checkBodyNull,verifyToken.verifyToken, ownerService.createOwner);
+    .post(middlewares.checkBodyNull, verifyToken.verifyToken, ownerService.createOwner);
 Router.route('/owner/:id')
     .patch(middlewares.checkID, verifyToken.verifyToken, ownerService.updateOwner)
     .delete(middlewares.checkID, verifyToken.verifyToken, ownerService.deleteOwnerById)
@@ -65,7 +65,7 @@ Router.route('/user')
     .post(middlewares.checkBodyNull, verifyToken.verifyToken, userService.createUser)
 
 Router.route('/checkuser')
-    .post( verifyToken.verifyToken,userService.checkUser)
+    .post(verifyToken.verifyToken, userService.checkUser)
 Router.route('/user/:id')
     .patch(middlewares.checkBodyNull, verifyToken.verifyToken, middlewares.checkID, userService.editUser)
     .get(middlewares.checkID, verifyToken.verifyToken, userService.getAllUserById)
@@ -86,15 +86,15 @@ Router.route('/category')
 Router.route('/category/:id')
     .get(middlewares.checkID, verifyToken.verifyToken, categoryService.getCategoryById)
     .delete(middlewares.checkID, verifyToken.verifyToken, categoryService.deleteCategory)
-    Router.route('/category/name/:id')
-    .post(middlewares.checkID,middlewares.checkBodyNull, verifyToken.verifyToken, categoryService.fetchCategoryByName)
+Router.route('/category/name/:id')
+    .post(middlewares.checkID, middlewares.checkBodyNull, verifyToken.verifyToken, categoryService.fetchCategoryByName)
 Router.route('/category/status/:id')
     .patch(middlewares.checkBodyNull, middlewares.checkID, verifyToken.verifyToken, categoryService.editStatusCategory)
     .get(middlewares.checkBodyNull, verifyToken.verifyToken, categoryService.getCategoryByStatus)
     .post(middlewares.checkBodyNull, verifyToken.verifyToken, categoryService.fetchCategoryByStatus)
 
 Router.route('/table/all/:id')
-    .get(middlewares.checkBodyNull, middlewares.checkID,  verifyToken.verifyToken,tableService.getAlltable)
+    .get(middlewares.checkBodyNull, middlewares.checkID, verifyToken.verifyToken, tableService.getAlltable)
 Router.route('/table/status/:id')
     .patch(middlewares.checkBodyNull, middlewares.checkID, tableService.editStatusTable)
 Router.route('/table/:id')
@@ -104,7 +104,7 @@ Router.route('/table/:id')
 Router.route('/table')
     .post(middlewares.checkBodyNull, middlewares.checkID, verifyToken.verifyToken, tableService.createTable)
 Router.route('/table/all/status/busy')
-    .get(tableService.getAlltableByStatusBusy , verifyToken.verifyToken)
+    .get(tableService.getAlltableByStatusBusy, verifyToken.verifyToken)
 
 Router.route('/food/all/category/:id')
     .get(middlewares.checkID, verifyToken.verifyToken, foodService.getByIdCategory)
@@ -131,11 +131,13 @@ Router.route('/menu/item')
     .post(middlewares.checkBodyNull, verifyToken.verifyToken, orderService.createMenuItem)
 Router.route('/menu/item/:id')
     .get(middlewares.checkID, verifyToken.verifyToken, orderService.getMenuItem)
-    .delete(middlewares.checkID, verifyToken.verifyToken, orderService.deleteMenuItem)
+    .post(middlewares.checkID, verifyToken.verifyToken, orderService.deleteMenuItem)
 Router.route('/success/order')
     .post(middlewares.checkBodyNull, verifyToken.verifyToken, orderService.successOrder)
 Router.route('/table/included')
     .post(middlewares.checkBodyNull, verifyToken.verifyToken, orderService.TableIncluded)
+Router.route('/order/wrn/:id')
+    .get(middlewares.checkID, verifyToken.verifyToken, orderService.WaitingReceiveMoney)
 
 Router.route('/rate')
     .post(middlewares.checkBodyNull, verifyToken.verifyToken, rateService.createRate)
@@ -155,20 +157,20 @@ Router.route('/report/food/sale/:id')
 
 Router.route('/report/food/sale/category/:id')
     .post(middlewares.checkBodyNull, middlewares.checkID, verifyToken.verifyToken, reportService.getFoodSalesByCategory)
-    Router.route('/report/food/sale/date/:id')
+Router.route('/report/food/sale/date/:id')
     .post(middlewares.checkBodyNull, middlewares.checkID, reportService.getFoodSalesByDate)
 
 
 Router.route('/dashboard/:id')
-    .post(middlewares.checkBodyNull,middlewares.checkID, verifyToken.verifyToken, dashboardService.getDashboard)
+    .post(middlewares.checkBodyNull, middlewares.checkID, verifyToken.verifyToken, dashboardService.getDashboard)
 
 
 Router.route('/kitchen/menu/:id')
     .post(middlewares.checkID, middlewares.checkBodyNull, verifyToken.verifyToken, kitchenService.getMenuAll)
     .patch(middlewares.checkBodyNull, middlewares.checkID, verifyToken.verifyToken, kitchenService.statusMenuItem)
 
-    
-    module.exports = Router;
+
+module.exports = Router;
 
 
 

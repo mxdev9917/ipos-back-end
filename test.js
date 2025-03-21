@@ -150,12 +150,13 @@ exports.getMenuItem = (req, res, next) => {
     let { id } = req.params;
     id = Number(id);
 
+
     if (Number.isNaN(id)) {
         return errors.mapError(400, "Request parameter invalid type", next);
     }
 
     try {
-        const newOrderStatus = "unpaid";
+        const newOrderStatus = "unpaid"; // Order status to look for
         const sql = `
             SELECT O.order_ID, T.table_name
             FROM Orders O
@@ -172,28 +173,36 @@ exports.getMenuItem = (req, res, next) => {
             if (results.length === 0) {
                 return errors.mapError(404, "No unpaid orders found for the given table", next);
             }
-
             const { order_ID: newOrder_ID, table_name } = results[0];
             const menuSql = `
-                    SELECT F.food_ID, F.food_name, SUM(M.quantity) AS quantity, F.price, M.menu_item_status
-                    FROM Menu_items M
-                    LEFT JOIN Orders O ON M.order_ID = O.order_ID
-                    LEFT JOIN Foods F ON M.food_ID = F.food_ID
-                    WHERE O.order_ID = ?
-                    GROUP BY F.food_ID, M.menu_item_status
-                     `;
+                SELECT F.food_ID, F.food_name, SUM(M.quantity) AS quantity, F.price,M.menu_item_status
+                FROM Menu_items M
+                LEFT JOIN Orders O ON M.order_ID = O.order_ID
+                LEFT JOIN Foods F ON M.food_ID = F.food_ID
+                WHERE O.order_ID = ?
+                GROUP BY F.food_ID
+            `;
             db.query(menuSql, [newOrder_ID], (error, menuResults) => {
                 if (error) {
                     console.error("Error fetching menu item:", error.message);
                     return errors.mapError(500, "Error fetching menu item", next);
                 }
-                const totalPrice = menuResults.reduce((acc, item) => acc + ((item.price || 0) * item.quantity), 0);
 
+                if (menuResults.length === 0) {
+                    return errors.mapError(404, "No menu items found for this order", next);
+                }
+
+                // Calculate total price
+                const totalPrice = menuResults.reduce((acc, item) => {
+                    const price = item.price || 0;
+                    const quantity = item.quantity || 0;
+                    return acc + (price * quantity);
+                }, 0);
                 return res.status(200).json({
                     status: "200",
                     message: "Successfully fetched menu items and total quantity",
                     table_name: table_name,
-                    totalPrice: totalPrice,
+                    totalPrice: totalPrice.toFixed(2), // Optional: Format totalPrice to two decimals
                     data: menuResults,
                 });
             });
@@ -203,6 +212,7 @@ exports.getMenuItem = (req, res, next) => {
         return errors.mapError(500, "Internal server error", next);
     }
 };
+
 
 exports.deleteMenuItem = (req, res, next) => {
     let { id } = req.params;
@@ -478,26 +488,6 @@ const OrderItem = async (CurOrderID, table_ID) => {
         });
     });
 };
-
-exports.WaitingReceiveMoney = async (req, res, next) => {
-    let { id } = req.params;
-    id = Number(id);
-    if (Number.isNaN(id)) {
-        return next(errors.mapError(400, "Request parameter invalid type"));
-    }
-    try {
-        await updateTableStatus("waitCheckBill", id);
-        return res.status(200).json({
-            status: "200",
-            message: "Successfully Waiting to receive money",
-        });
-    } catch (error) {
-        console.error(error.message);
-        return next(errors.mapError(500, "Internal server error"));
-    }
-
-}
-
 
 
 
