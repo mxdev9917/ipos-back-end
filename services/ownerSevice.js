@@ -392,6 +392,6 @@ exports.lockOwner = (req, res, next) => {
 
 }
 exports.Ownertest = (req, res, next) => {
-    return res.status(200).json({ message: 'ipos' });
+    return res.status(200).json({ message: 'ipos v001' });
 };
 
