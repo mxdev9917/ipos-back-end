@@ -16,17 +16,32 @@ exports.hashPassword = async (password) => {
    }
 }
 exports.comparePasswrod = async (password, hash) => {
-   const result = await bcrypt.compare(password, hash)
-   return result;
+   try {
+      const result = await bcrypt.compare(password, hash)
+      return result;
+   } catch (error) {
+      console.log(error.message);
+      errors.mapError(500, "Internal server error", next)
+   }
 }
 
 exports.generateJWT = async (data) => {
-   const token = jwt.sign(data, process.env.JWT_SECERT, { expiresIn: 60 * 60 })
-   return token;
+   try {
+      const token = jwt.sign(data, process.env.JWT_SECERT, { expiresIn: 60 * 60 })
+      return token;
+   } catch (error) {
+      console.log(error.message);
+      errors.mapError(500, "Internal server error", next)
+   }
 }
 
 exports.verifyToken = async (token) => {
-   const result = jwt.verify(token, process.env.JWT_SECERT);
-   return result;
+   try {
+      const result = jwt.verify(token, process.env.JWT_SECERT);
+      return result;
+   } catch (error) {
+      console.log(error.message);
+      errors.mapError(500, "Internal server error", next)
+   }
 }
 

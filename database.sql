@@ -133,3 +133,14 @@ CREATE TABLE `Rates`(
   PRIMARY KEY (`rate_ID`),
   FOREIGN KEY (`restaurant_ID`) REFERENCES `Restaurants` (`restaurant_ID`) ON DELETE CASCADE
 );
+
+CREATE TABLE `Tables` (
+  table_ID int NOT NULL AUTO_INCREMENT,
+  restaurant_ID int NOT NULL,
+  table_name varchar(100) NOT NULL,
+  table_status varchar(20) DEFAULT 'empty',
+  table_token varchar(255),
+  created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  update_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (table_ID)
+)

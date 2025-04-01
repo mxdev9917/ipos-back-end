@@ -1,11 +1,18 @@
 const errors = require('../utils/errors')
 const db = require('../db/connection');
+const encrypt = require('../utils/encryptTableToken')
 
-exports.createOrder = (req, res, next) => {
+exports.createOrder = async (req, res, next) => {
     let body = req.body;
     const { table_ID, user_ID, table_status, restaurant_ID } = body;
     const currentDate = new Date();
     try {
+        const token = await encrypt.generateJWT({
+            table_ID: table_ID,
+            user_type: 'client',
+            restaurant_ID: restaurant_ID
+
+        });
         const sql = `INSERT INTO Orders (table_ID,user_ID,restaurant_ID, created_at) VALUES(?,?,?,?)`;
         db.query(sql, [table_ID, user_ID, restaurant_ID, currentDate], (error, results) => {
             if (error) {
@@ -13,14 +20,16 @@ exports.createOrder = (req, res, next) => {
                 errors.mapError(error, 500, "Error create oder", next)
                 return;
             }
-            const sql = `UPDATE Tables SET table_status=? WHERE table_ID=? `;
-            db.query(sql, [table_status, table_ID], (error) => {
+
+            const sql = `UPDATE Tables SET table_status=?,table_token=? WHERE table_ID=? `;
+            db.query(sql, [table_status, token, table_ID], (error) => {
                 if (error) {
                     console.error('Error update table status:', error.message);
                     errors.mapError(error, 500, "Error update table status", next)
                     return;
                 }
             });
+
             return res.status(200).json({ status: "200", message: 'successfully' });
         });
 
@@ -497,7 +506,127 @@ exports.WaitingReceiveMoney = async (req, res, next) => {
     }
 
 }
+exports.getOrder = async (req, res, next) => {
+    let { id } = req.params;
+    id = Number(id);
 
+    if (Number.isNaN(id)) {
+        return next(errors.mapError(400, "Request parameter invalid type"));
+    }
 
+    try {
+        const order_status = "unpaid";
+        const sql = `SELECT order_ID, restaurant_ID FROM Orders WHERE table_ID = ? AND order_status = ?`;
 
+        db.query(sql, [id, order_status], async (error, results) => {
+            if (error) {
+                console.error("Error fetching orders:", error.message);
+                return next(errors.mapError(500, "Error fetching orders"));
+            }
 
+            if (results.length === 0) {
+                return next(errors.mapError(404, "No unpaid orders found for this table"));
+            }
+
+            try {
+                const table = await getTable(id);
+                const category = await getCategory(results[0].restaurant_ID);
+                const menuItem = await getMenuItem(results[0].order_ID);
+                const rate = await getRate(results[0].restaurant_ID);
+
+                return res.status(200).json({
+                    status: "200",
+                    message: "Successfully fetched order",
+                    table,
+                    category,
+                    menuItem,
+                    rate
+                });
+
+            } catch (fetchError) {
+                console.error("Error fetching order details:", fetchError.message);
+                return next(errors.mapError(500, "Error fetching order details"));
+            }
+        });
+
+    } catch (error) {
+        console.error("Internal server error:", error.message);
+        return next(errors.mapError(500, "Internal server error"));
+    }
+};
+
+// Fetch Table Details
+const getTable = async (table_ID) => {
+    return new Promise((resolve, reject) => {
+        const sql = `SELECT table_ID, table_name, table_token FROM Tables WHERE table_ID = ?`;
+        db.query(sql, [table_ID], (error, results) => {
+            if (error) {
+                console.error("Error fetching table:", error.message);
+                return reject(new Error("Error fetching table"));
+            }
+            if (results.length === 0) {
+                return reject(new Error("Table not found"));
+            }
+            resolve(results[0]);
+        });
+    });
+};
+
+// Fetch Category Data
+const getCategory = async (restaurant_ID) => {
+    return new Promise((resolve, reject) => {
+        const sql = `SELECT category_ID, category, category_image  
+                     FROM Categories 
+                     WHERE restaurant_ID = ? AND category_status = ?`;
+
+        db.query(sql, [restaurant_ID, "active"], (error, results) => {
+            if (error) {
+                console.error("Error fetching category:", error.message);
+                return reject(new Error("Error fetching category"));
+            }
+
+            if (results.length === 0) {
+                return reject(new Error("No categories found"));
+            }
+
+            resolve(results);
+        });
+    });
+};
+
+// Fetch Menu Items
+const getMenuItem = async (order_ID) => {
+    return new Promise((resolve, reject) => {
+        const sql = `
+            SELECT F.food_ID, F.food_name, COALESCE(SUM(M.quantity), 0) AS quantity, F.price, M.menu_item_status
+            FROM Menu_items M
+            JOIN Orders O ON M.order_ID = O.order_ID
+            JOIN Foods F ON M.food_ID = F.food_ID
+            WHERE O.order_ID = ?
+            GROUP BY F.food_ID, F.food_name, F.price, M.menu_item_status
+        `;
+
+        db.query(sql, [order_ID], (error, results) => {
+            if (error) {
+                console.error("Error fetching menu item:", error.message);
+                return reject(new Error("Error fetching menu item"));
+            }
+            const totalPrice = results.reduce((acc, item) => acc + ((item.price || 0) * item.quantity), 0);
+            resolve({ menuItems: results, totalPrice });
+        });
+    });
+};
+
+// Fetch Currency Rate
+const getRate = async (restaurant_ID) => {
+    return new Promise((resolve, reject) => {
+        const sql = `SELECT rate_ID, currency, rate FROM Rates WHERE rate_status=? AND restaurant_ID =?`;
+        db.query(sql, ["active", restaurant_ID], (error, results) => {
+            if (error) {
+                console.error("Error fetching rate:", error.message);
+                return reject(new Error("Error fetching rate"));
+            }
+            resolve(results);
+        });
+    });
+};

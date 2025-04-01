@@ -61,7 +61,7 @@ exports.createRas = async (req, res, next) => {
                 }
 
                 const res_ID = results[0].restaurant_ID;
-                const owner_name = results[0].owner_name;
+                const owner_name = results[0].owner_name; 
 
                 const userSql = `INSERT INTO Users (restaurant_ID,user_name,user,user_password,user_role) VALUES(?,?,?,?,?)`;
                 db.query(userSql, [res_ID, owner_name, user, await encrypt.hashPassword(password), "owner"], (error) => {

@@ -105,6 +105,8 @@ Router.route('/table')
     .post(middlewares.checkBodyNull, middlewares.checkID, verifyToken.verifyToken, tableService.createTable)
 Router.route('/table/all/status/busy')
     .get(tableService.getAlltableByStatusBusy, verifyToken.verifyToken)
+Router.route('/table/generate/token')
+    .post(middlewares.checkBodyNull, tableService.createTableToken)
 
 Router.route('/food/all/category/:id')
     .get(middlewares.checkID, verifyToken.verifyToken, foodService.getByIdCategory)
@@ -122,9 +124,12 @@ Router.route('/food/status/:id')
     .get(middlewares.checkID, verifyToken.verifyToken, foodService.getFoodByStatus)
     .post(middlewares.checkID, verifyToken.verifyToken, middlewares.checkBodyNull, foodService.fetchFoodByStatus)
 
-//  all router Orders 
+//  all router Orders  
+Router.route('/order/:id')
+    .get(middlewares.checkID ,orderService.getOrder) 
 Router.route('/order')
     .post(middlewares.checkBodyNull, verifyToken.verifyToken, orderService.createOrder)
+
 Router.route('/cancel/order/:id')
     .delete(middlewares.checkBodyNull, verifyToken.verifyToken, orderService.cancelOrder)
 Router.route('/menu/item')

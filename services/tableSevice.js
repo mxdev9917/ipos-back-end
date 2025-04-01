@@ -239,6 +239,17 @@ exports.getTableByName = (req, res, next) => {
         errors.mapError(500, 'Internal server error', next);
     }
 }
+
+exports.createTableToken=(req, res, next)=>{
+const {table_ID,restaurant_ID}=req.body;
+console.log({table_ID,restaurant_ID});
+
+}
+
+
+
+
+
 // exports.getTableByStatus = (req, res, next) => {
 //     try {
 //         let { id } = req.params;

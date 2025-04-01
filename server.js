@@ -1,4 +1,3 @@
-
 const express = require('express');
 const Router = require('./router');
 const dotenv = require('dotenv');
@@ -14,7 +13,7 @@ const port = process.env.PORT || 8080;
 
 // CORS middleware configuration
 app.use(cors({
-    origin: '*', // Allow all origins
+    origin: '*', // Allow all origins (for testing, restrict in production)
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
@@ -27,6 +26,11 @@ app.use(express.json());
 
 // Serve static files (images, etc.)
 app.use('/images', express.static(path.join(__dirname, 'public', 'images')));
+
+// Health check route
+app.get('/health', (req, res) => {
+    res.status(200).send('Server is healthy!');
+});
 
 // Route handling
 app.use('/', Router);
@@ -44,4 +48,3 @@ app.options('*', cors());
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
-

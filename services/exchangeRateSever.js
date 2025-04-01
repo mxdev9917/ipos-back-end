@@ -259,7 +259,7 @@ exports.fetchRateByName = (req, res, next) => {
         });
     } catch (error) {
         console.error(error.message);
-        return next(errors.mapError(500, "Internal server error", next));
+        return next(errors.mapError(500, "Internal server error", next)); 
         
     }
 };
