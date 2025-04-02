@@ -180,8 +180,10 @@ Router.route('/client/homepage/:id')
 
 Router.route('/client/search/food')
     .post(middlewares.checkBodyNull, homePageService.getFoodByName)
-    Router.route('/client/filter/food')
+Router.route('/client/filter/food')
     .post(middlewares.checkBodyNull, homePageService.getFoodByCategoryId)
+Router.route('/client/qr/:id')
+    .get(middlewares.checkID, homePageService.getQR)
 
 module.exports = Router;
 

@@ -131,24 +131,20 @@ exports.getFoodByName = async (req, res, next) => {
         next(error); // Pass the error to Express error handler
     }
 };
-
 exports.getFoodByCategoryId = async (req, res, next) => {
     const category_status = "active";
     const food_status = "active";
-    const { food_name, restaurant_ID } = req.body;
+    const { category_ID } = req.body; // Extract category_ID from the request body
 
     try {
         const sql = `
             SELECT f.food_ID, f.food_name, f.price, f.food_img, f.category_ID, c.category
             FROM Foods f
             JOIN Categories c ON c.category_ID = f.category_ID
-            WHERE f.restaurant_ID = ? 
-            AND c.category_status = ? 
-            AND f.food_status = ?
-            AND f.category_ID = ?
+            WHERE f.food_status = ? AND c.category_ID = ? AND c.category_status = ?
         `;
 
-        db.query(sql, [restaurant_ID, category_status, food_status, `%${food_name}%`], (error, results) => {
+        db.query(sql, [food_status, category_ID, category_status], (error, results) => {
             if (error) {
                 console.error("Error fetching food:", error.message);
                 return res.status(500).json({
@@ -159,7 +155,7 @@ exports.getFoodByCategoryId = async (req, res, next) => {
 
             return res.status(200).json({
                 status: "200",
-                message: "Successfully fetched food by name",
+                message: "Successfully fetched food by category ID",
                 food: results,
             });
         });
@@ -169,6 +165,26 @@ exports.getFoodByCategoryId = async (req, res, next) => {
     }
 };
 
-
+exports.getQR = (req,res,next) => {
+    let { id } = req.params;
+    id = Number(id);  // Convert id to a numbersa
+    if (Number.isNaN(id)) {
+        return errors.mapError(400, "Request parameter invalid type", next);  // Return a 400 for invalid ID
+    }
+    try {
+        const sql = `SELECT table_token FROM Tables WHERE table_ID=?`;
+        db.query(sql, [id], (error,results) => {
+            if (error) {
+                console.error('Error fetching QR:', error.message);
+                errors.mapError(500, "Internal server error", next);
+                return;
+            }
+            return res.status(200).json({ status: "200", message: 'Fetching QR  successfully', data: results });
+        });
+    } catch (error) {
+        console.error("Error fetching food details:", error.message);
+        next(error); // Pass the error to Express error handler
+    }
+}
 
 

@@ -79,6 +79,7 @@ CREATE TABLE `Foods` (
   `food_name` VARCHAR(100) NOT NULL,
   `price` int NOT NULL,
   `food_status` VARCHAR(20) DEFAULT 'active',
+  `suggested`VARCHAR(20) DEFAULT 'false',
   `food_img` VARCHAR(150),
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -135,12 +136,25 @@ CREATE TABLE `Rates`(
 );
 
 CREATE TABLE `Tables` (
-  table_ID int NOT NULL AUTO_INCREMENT,
-  restaurant_ID int NOT NULL,
+  table_ID INT NOT NULL AUTO_INCREMENT,
+  restaurant_ID INT NOT NULL,
   table_name varchar(100) NOT NULL,
   table_status varchar(20) DEFAULT 'empty',
   table_token varchar(255),
   created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   update_at timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (table_ID)
-)
+);
+
+CREATE TABLE `Sliders`(
+  `slider_ID` INT NOT NULL AUTO_INCREMENT,
+  `restaurant_ID` INT NOT NULL,
+  `slider_url` VARCHAR(100) NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (slider_ID),
+  FOREIGN KEY (`restaurant_ID`) REFERENCES `Restaurants` (`restaurant_ID`) ON DELETE CASCADE
+);
+
+
+
