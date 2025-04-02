@@ -14,6 +14,7 @@ const rateService = require('./services/exchangeRateSever')
 const reportService = require('./services/reportService');
 const dashboardService = require('./services/dashboardService');
 const kitchenService = require('./services/kitchenService');
+const homePageService = require('./services/client/homePageService')
 
 // const { verifyToken } = require('./utils/encrypt');
 
@@ -124,9 +125,9 @@ Router.route('/food/status/:id')
     .get(middlewares.checkID, verifyToken.verifyToken, foodService.getFoodByStatus)
     .post(middlewares.checkID, verifyToken.verifyToken, middlewares.checkBodyNull, foodService.fetchFoodByStatus)
 
-//  all router Orders  
+//  all router Orders 
 Router.route('/order/:id')
-    .get(middlewares.checkID ,orderService.getOrder) 
+    .get(middlewares.checkID, verifyToken.verifyToken, orderService.getOrder)
 Router.route('/order')
     .post(middlewares.checkBodyNull, verifyToken.verifyToken, orderService.createOrder)
 
@@ -174,6 +175,13 @@ Router.route('/kitchen/menu/:id')
     .post(middlewares.checkID, middlewares.checkBodyNull, verifyToken.verifyToken, kitchenService.getMenuAll)
     .patch(middlewares.checkBodyNull, middlewares.checkID, verifyToken.verifyToken, kitchenService.statusMenuItem)
 
+Router.route('/client/homepage/:id')
+    .get(middlewares.checkID, homePageService.homePage)
+
+Router.route('/client/search/food')
+    .post(middlewares.checkBodyNull, homePageService.getFoodByName)
+    Router.route('/client/filter/food')
+    .post(middlewares.checkBodyNull, homePageService.getFoodByCategoryId)
 
 module.exports = Router;
 
