@@ -10,7 +10,7 @@ exports.createOrder = async (req, res, next) => {
         const token = await encrypt.generateJWT({
             table_ID: table_ID,
             user_type: 'client',
-            restaurant_ID: restaurant_ID
+            restaurant_ID: restaurant_ID 
 
         });
         const sql = `INSERT INTO Orders (table_ID,user_ID,restaurant_ID, created_at) VALUES(?,?,?,?)`;
