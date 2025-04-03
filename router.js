@@ -124,6 +124,8 @@ Router.route('/food/status/:id')
     .patch(middlewares.checkID, verifyToken.verifyToken, middlewares.checkBodyNull, foodService.editStatusfood)
     .get(middlewares.checkID, verifyToken.verifyToken, foodService.getFoodByStatus)
     .post(middlewares.checkID, verifyToken.verifyToken, middlewares.checkBodyNull, foodService.fetchFoodByStatus)
+Router.route('/food/suggested')
+    .patch(middlewares.checkBodyNull, foodService.UpdateSuggestedFood)
 
 //  all router Orders 
 Router.route('/order/:id')

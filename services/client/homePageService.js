@@ -13,12 +13,14 @@ exports.homePage = async (req, res, next) => {
 
         const category = await getCategory(id);
         const food = await getAllfood(id);
+        const Suggested =await getSuggested(id);
 
         return res.status(200).json({
             status: "200",
             message: "Successfully fetched order",
             category,
-            food
+            food,
+            Suggested
         });
 
     } catch (fetchError) {
@@ -27,6 +29,27 @@ exports.homePage = async (req, res, next) => {
     }
 
 }
+const getSuggested = async (restaurant_ID) => {
+    return new Promise((resolve, reject) => {
+        const sql = `SELECT food_ID, food_name, price, food_img
+                     FROM Foods 
+                     WHERE restaurant_ID = ? AND suggested = ?`;
+
+        db.query(sql, [restaurant_ID, "true"], (error, results) => {
+            if (error) {
+                console.error("Error fetching category:", error.message);
+                return reject(new Error("Error fetching category"));
+            }
+
+            if (results.length === 0) {
+                return reject(new Error("No categories found"));
+            }
+
+            resolve(results);
+        });
+    });
+};
+
 
 const getCategory = async (restaurant_ID) => {
     return new Promise((resolve, reject) => {
@@ -95,6 +118,7 @@ const getAllfood = (id) => {
         }
     });
 };
+
 exports.getFoodByName = async (req, res, next) => {
     const category_status = "active";
     const food_status = "active";

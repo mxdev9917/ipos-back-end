@@ -3,6 +3,7 @@ const encrypt = require('../utils/encrypt');
 const db = require('../db/connection');
 const upload = require('../utils/multerConfig');
 const insertPathImg = require("../utils/insertPathImg");
+const { error } = require('winston');
 exports.getAllfood = (req, res, next) => {
     let { id } = req.params;
     id = Number(id);  // Convert id to a number
@@ -15,7 +16,7 @@ exports.getAllfood = (req, res, next) => {
     const pageLimit = limit ? Number(limit) : 100;
 
     try {
-        const sql = `SELECT p.food_ID, p.food_name, c.category, p.food_status, p.price, p.food_img, p.created_at
+        const sql = `SELECT p.food_ID,p.suggested, p.food_name, c.category, p.food_status, p.price, p.food_img, p.created_at
                     FROM Restaurants r
                     JOIN Categories c ON r.restaurant_ID = c.restaurant_ID
                     JOIN Foods p ON c.category_ID = p.category_ID
@@ -375,7 +376,7 @@ exports.fetchFoodByName = (req, res, next) => {
     }
     const { food_name } = req.body;
     console.log(food_name);
-    
+
     const sql = `SELECT food_ID,food_name,price,food_status,food_img FROM Foods WHERE restaurant_ID = ? AND food_name = ? ;`;
 
     db.query(sql, [id, food_name], (error, results) => {
@@ -391,6 +392,34 @@ exports.fetchFoodByName = (req, res, next) => {
 
     });
 };
+
+exports.UpdateSuggestedFood = (req, res, next) => {
+    const { food_ID, suggested } = req.body;
+
+    if (!food_ID || suggested === undefined) {
+        return errors.mapError(400, "Missing required fields", next);
+    }
+
+    const sql = `UPDATE Foods SET suggested=? WHERE food_ID=?`;
+
+    db.query(sql, [suggested, food_ID], (error, results) => {
+        if (error) {
+            console.error("Error updating suggested Food:", error.message);
+            return errors.mapError(500, "Internal server error", next);
+        }
+
+        if (results.affectedRows === 0) {
+            return errors.mapError(404, "Food not found", next);
+        }
+
+        return res.status(200).json({
+            status: "200",
+            message: "Update suggested Food successfully",
+            data: results,
+        });
+    });
+};
+
 
 
 
