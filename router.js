@@ -14,7 +14,8 @@ const rateService = require('./services/exchangeRateSever')
 const reportService = require('./services/reportService');
 const dashboardService = require('./services/dashboardService');
 const kitchenService = require('./services/kitchenService');
-const homePageService = require('./services/client/homePageService')
+const homePageService = require('./services/client/homePageService');
+const SlideService = require('./services/slidesService');
 
 // const { verifyToken } = require('./utils/encrypt');
 
@@ -186,6 +187,15 @@ Router.route('/client/filter/food')
     .post(middlewares.checkBodyNull, homePageService.getFoodByCategoryId)
 Router.route('/client/qr/:id')
     .get(middlewares.checkID, homePageService.getQR)
+
+Router.route('/slide')
+    .post(middlewares.checkBodyNull, verifyToken.verifyToken, SlideService.createslide)
+Router.route('/slide/:id')
+    .get(middlewares.checkID, verifyToken.verifyToken, SlideService.getAllSlide)
+    .delete(middlewares.checkID, verifyToken.verifyToken, SlideService.deleteSlide)
+    .post(middlewares.checkID,verifyToken.verifyToken,SlideService.editSlide)
+Router.route('/slide/status')
+    .post(middlewares.checkID, verifyToken.verifyToken, SlideService.editStatus)
 
 module.exports = Router;
 

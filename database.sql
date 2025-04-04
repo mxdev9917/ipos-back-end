@@ -150,6 +150,7 @@ CREATE TABLE `Sliders`(
   `slider_ID` INT NOT NULL AUTO_INCREMENT,
   `restaurant_ID` INT NOT NULL,
   `slider_url` VARCHAR(100) NOT NULL,
+  `slider_visibility`VARCHAR(20) DEFAULT 'active',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `update_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (slider_ID),
