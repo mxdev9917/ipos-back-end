@@ -3,7 +3,7 @@ const encrypt = require('../utils/encrypt');
 const db = require('../db/connection');
 const upload = require('../utils/multerConfig');
 const insertPathImg = require("../utils/insertPathImg");
-const { error } = require('winston');
+const { error, log } = require('winston');
 exports.getAllfood = (req, res, next) => {
     let { id } = req.params;
     id = Number(id);  // Convert id to a number
@@ -340,7 +340,6 @@ exports.fetchFoodByStatus = (req, res, next) => {
     const pagenumber = page ? Number(page) : 1;
     const pageLimit = limit ? Number(limit) : 100;
     const offset = (pagenumber - 1) * pageLimit;  // Fixed offset calculation
-
     const sql = `SELECT food_ID,food_name,price,food_status,food_img FROM Foods WHERE restaurant_ID = ? AND food_status = ? LIMIT ? OFFSET ?;`;
 
     db.query(sql, [id, food_status, pageLimit, offset], (error, results) => {

@@ -138,15 +138,13 @@ exports.deleteSlide = (req, res, next) => {
 };
 
 
-
 exports.editSlide = (req, res, next) => {
     upload.single("slider_url")(req, res, (err) => {
         if (err) {
             return res.status(400).json({ message: err.message });
         }
 
-        const { slider_ID } = req.body; 
-        console.log(slider_ID)
+        const { slider_ID } = req.body;
         const newSliderUrl = req.file ? `/images/slider_img/${req.file.filename}` : null;
 
         if (!slider_ID) {
@@ -165,40 +163,48 @@ exports.editSlide = (req, res, next) => {
                     return errors.mapError(404, "Slider not found", next);
                 }
 
-                // Build proper absolute image path
-                const oldImagePath = path.join(__dirname, "..", "public", results[0].slider_url);
-
-                fs.access(oldImagePath, fs.constants.F_OK, (accessErr) => {
-                    if (accessErr) {
-                        console.warn("Old image not found, skipping deletion.");
-                        return updateRecord(slider_ID, newSliderUrl, res, next);
+                const sqlUpdate = "UPDATE Sliders SET slider_url = ? WHERE slider_ID = ?";
+                db.query(sqlUpdate, [newSliderUrl, slider_ID], (err) => {
+                    if (err) {
+                        console.error("Database error while updating slider:", err.message);
+                        return errors.mapError(500, "Database error while updating slider", next);
                     }
 
-                    fs.unlink(oldImagePath, (unlinkErr) => {
-                        if (unlinkErr) {
-                            console.error("Error deleting old image:", unlinkErr.message);
-                            return errors.mapError(500, "Error deleting old image", next);
-                        }
-                        console.log("Old image deleted successfully.");
-                        return updateRecord(slider_ID, newSliderUrl, res, next);
+                    // Delete old image after update
+                    removeimg(results[0].slider_url);
+
+                    return res.status(201).json({
+                        status: "201",
+                        message: "Slider updated successfully",
                     });
                 });
             });
-
         } catch (error) {
             console.error("Unexpected error:", error.message);
-            errors.mapError(500, "Internal server error", next); 
+            errors.mapError(500, "Internal server error", next);
         }
     });
 };
 
-function updateRecord(slider_ID, newSliderUrl, res, next) {
-    const sqlUpdate = "UPDATE Sliders SET slider_url = ? WHERE slider_ID = ?";
-    db.query(sqlUpdate, [newSliderUrl, slider_ID], (err) => {
-        if (err) {
-            console.error("Database error while updating slider:", err.message);
-            return errors.mapError(500, "Database error while updating slider", next);
+function removeimg(phat_img) {
+    if (!phat_img) return;
+
+    const imagePath = path.join(__dirname, "..", "public", phat_img);
+
+    console.log("Attempting to delete image at:", imagePath);  // Debugging log
+
+    fs.access(imagePath, fs.constants.F_OK, (accessErr) => {
+        if (accessErr) {
+            console.warn("Image file not found, skipping deletion:", imagePath);
+            return;
         }
-        res.status(200).json({ status: "201", message: "Slider updated successfully" });
+
+        fs.unlink(imagePath, (unlinkErr) => {
+            if (unlinkErr) {
+                console.error("Error deleting image file:", unlinkErr.message);
+            } else {
+                console.log("Image deleted successfully.");
+            }
+        });
     });
 }

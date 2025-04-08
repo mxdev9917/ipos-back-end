@@ -16,6 +16,8 @@ const dashboardService = require('./services/dashboardService');
 const kitchenService = require('./services/kitchenService');
 const homePageService = require('./services/client/homePageService');
 const SlideService = require('./services/slidesService');
+const clientFooddService = require('./services/client/foodService');
+const orderClientService=require('./services/client/orderService')
 
 // const { verifyToken } = require('./utils/encrypt');
 
@@ -187,15 +189,23 @@ Router.route('/client/filter/food')
     .post(middlewares.checkBodyNull, homePageService.getFoodByCategoryId)
 Router.route('/client/qr/:id')
     .get(middlewares.checkID, homePageService.getQR)
+Router.route('/client/food/:id')
+    .get(middlewares.checkID, clientFooddService.getAllfood)
+    Router.route('/client/food/name/:id')
+    .post(middlewares.checkID, clientFooddService.getFoodByName)
 
 Router.route('/slide')
     .post(middlewares.checkBodyNull, verifyToken.verifyToken, SlideService.createslide)
+    .patch(middlewares.checkID, verifyToken.verifyToken, SlideService.editSlide)
 Router.route('/slide/:id')
     .get(middlewares.checkID, verifyToken.verifyToken, SlideService.getAllSlide)
     .delete(middlewares.checkID, verifyToken.verifyToken, SlideService.deleteSlide)
-    .post(middlewares.checkID,verifyToken.verifyToken,SlideService.editSlide)
+
 Router.route('/slide/status')
     .post(middlewares.checkID, verifyToken.verifyToken, SlideService.editStatus)
+
+Router.route('/client/order/create')
+.post(middlewares.checkBodyNull,orderClientService.createMenuItem);
 
 module.exports = Router;
 

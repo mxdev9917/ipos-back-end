@@ -1,34 +1,57 @@
-
-const errors = require('../../utils/errors')
+const errors = require('../../utils/errors');
 const encrypt = require('../../utils/encrypt');
 const db = require('../../db/connection');
 
+// ====================== Home Page ======================
+
 exports.homePage = async (req, res, next) => {
     let { id } = req.params;
-    id = Number(id);  // Convert id to a numbersa
-    if (Number.isNaN(id)) {
-        return errors.mapError(400, "Request parameter invalid type", next);  // Return a 400 for invalid ID
-    }
-    try {
+    id = Number(id);
 
+    if (Number.isNaN(id)) {
+        return errors.mapError(400, "Request parameter invalid type", next);
+    }
+
+    try {
         const category = await getCategory(id);
         const food = await getAllfood(id);
-        const Suggested =await getSuggested(id);
+        const Suggested = await getSuggested(id);
+        const slide = await getSlider(id);
 
         return res.status(200).json({
             status: "200",
             message: "Successfully fetched order",
             category,
             food,
-            Suggested
+            Suggested,
+            slide
         });
 
     } catch (fetchError) {
         console.error("Error fetching order details:", fetchError.message);
         return next(errors.mapError(500, "Error fetching order details"));
     }
+};
 
-}
+// ====================== Get Slider ======================
+
+const getSlider = async (restaurant_ID) => {
+    const status = "active";
+    return new Promise((resolve, reject) => {
+        const sql = `SELECT slider_ID, slider_url FROM Sliders WHERE restaurant_ID = ? AND slider_visibility = ?`;
+        db.query(sql, [restaurant_ID, status], (error, results) => {
+            if (error) {
+                console.error("Error fetching sliders:", error.message);
+                return reject(new Error("Error fetching sliders"));
+            }
+
+            resolve(results);
+        });
+    });
+};
+
+// ====================== Get Suggested Food ======================
+
 const getSuggested = async (restaurant_ID) => {
     return new Promise((resolve, reject) => {
         const sql = `SELECT food_ID, food_name, price, food_img
@@ -37,12 +60,12 @@ const getSuggested = async (restaurant_ID) => {
 
         db.query(sql, [restaurant_ID, "true"], (error, results) => {
             if (error) {
-                console.error("Error fetching category:", error.message);
-                return reject(new Error("Error fetching category"));
+                console.error("Error fetching suggested foods:", error.message);
+                return reject(new Error("Error fetching suggested foods"));
             }
 
             if (results.length === 0) {
-                return reject(new Error("No categories found"));
+                return reject(new Error("No suggested foods found"));
             }
 
             resolve(results);
@@ -50,6 +73,7 @@ const getSuggested = async (restaurant_ID) => {
     });
 };
 
+// ====================== Get Categories ======================
 
 const getCategory = async (restaurant_ID) => {
     return new Promise((resolve, reject) => {
@@ -59,8 +83,8 @@ const getCategory = async (restaurant_ID) => {
 
         db.query(sql, [restaurant_ID, "active"], (error, results) => {
             if (error) {
-                console.error("Error fetching category:", error.message);
-                return reject(new Error("Error fetching category"));
+                console.error("Error fetching categories:", error.message);
+                return reject(new Error("Error fetching categories"));
             }
 
             if (results.length === 0) {
@@ -71,6 +95,8 @@ const getCategory = async (restaurant_ID) => {
         });
     });
 };
+
+// ====================== Get All Food Grouped by Category ======================
 
 const getAllfood = (id) => {
     const category_status = "active";
@@ -91,7 +117,7 @@ const getAllfood = (id) => {
                     return reject(new Error("Error fetching food"));
                 }
 
-                // Transform data into grouped format
+                // Group foods by category
                 const groupedData = results.reduce((acc, food) => {
                     if (!acc[food.category]) {
                         acc[food.category] = [];
@@ -108,16 +134,18 @@ const getAllfood = (id) => {
 
                 resolve({
                     status: "200",
-                    message: "Successfully fetched order",
+                    message: "Successfully fetched food",
                     food: groupedData
                 });
             });
         } catch (error) {
-            console.error("Error fetching food details:", error.message);
-            return reject(new Error("Error fetching food details"));
+            console.error("Error processing food:", error.message);
+            return reject(new Error("Error processing food"));
         }
     });
 };
+
+// ====================== Get Food by Name ======================
 
 exports.getFoodByName = async (req, res, next) => {
     const category_status = "active";
@@ -151,14 +179,17 @@ exports.getFoodByName = async (req, res, next) => {
             });
         });
     } catch (error) {
-        console.error("Error fetching food details:", error.message);
-        next(error); // Pass the error to Express error handler
+        console.error("Error searching food:", error.message);
+        next(error);
     }
 };
+
+// ====================== Get Food by Category ID ======================
+
 exports.getFoodByCategoryId = async (req, res, next) => {
     const category_status = "active";
     const food_status = "active";
-    const { category_ID } = req.body; // Extract category_ID from the request body
+    const { category_ID } = req.body;
 
     try {
         const sql = `
@@ -184,31 +215,37 @@ exports.getFoodByCategoryId = async (req, res, next) => {
             });
         });
     } catch (error) {
-        console.error("Error fetching food details:", error.message);
-        next(error); // Pass the error to Express error handler
+        console.error("Error searching food:", error.message);
+        next(error);
     }
 };
 
-exports.getQR = (req,res,next) => {
+// ====================== Get QR Code for Table ======================
+
+exports.getQR = (req, res, next) => {
     let { id } = req.params;
-    id = Number(id);  // Convert id to a numbersa
+    id = Number(id);
+
     if (Number.isNaN(id)) {
-        return errors.mapError(400, "Request parameter invalid type", next);  // Return a 400 for invalid ID
+        return errors.mapError(400, "Request parameter invalid type", next);
     }
+
     try {
-        const sql = `SELECT table_token FROM Tables WHERE table_ID=?`;
-        db.query(sql, [id], (error,results) => {
+        const sql = `SELECT table_token FROM Tables WHERE table_ID = ?`;
+        db.query(sql, [id], (error, results) => {
             if (error) {
                 console.error('Error fetching QR:', error.message);
-                errors.mapError(500, "Internal server error", next);
-                return;
+                return errors.mapError(500, "Internal server error", next);
             }
-            return res.status(200).json({ status: "200", message: 'Fetching QR  successfully', data: results });
+
+            return res.status(200).json({
+                status: "200",
+                message: 'Fetching QR successfully',
+                data: results
+            });
         });
     } catch (error) {
-        console.error("Error fetching food details:", error.message);
-        next(error); // Pass the error to Express error handler
+        console.error("Unexpected error fetching QR:", error.message);
+        next(error);
     }
-}
-
-
+};

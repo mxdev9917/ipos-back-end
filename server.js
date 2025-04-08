@@ -28,8 +28,9 @@ const logger = createLogger({
         format.timestamp(),
         format.json()
     ),
-    transports: [transport, new transports.Console()] // Logs to file & console
+    transports: [transport] // Only logs to file now
 });
+
 
 // Use Winston with Morgan
 app.use(morgan('combined', { stream: { write: (msg) => logger.info(msg.trim()) } }));
