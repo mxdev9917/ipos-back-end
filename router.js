@@ -17,7 +17,7 @@ const kitchenService = require('./services/kitchenService');
 const homePageService = require('./services/client/homePageService');
 const SlideService = require('./services/slidesService');
 const clientFooddService = require('./services/client/foodService');
-const orderClientService=require('./services/client/orderService')
+const orderClientService = require('./services/client/orderService')
 
 // const { verifyToken } = require('./utils/encrypt');
 
@@ -181,18 +181,19 @@ Router.route('/kitchen/menu/:id')
     .patch(middlewares.checkBodyNull, middlewares.checkID, verifyToken.verifyToken, kitchenService.statusMenuItem)
 
 Router.route('/client/homepage/:id')
-    .get(middlewares.checkID, homePageService.homePage)
+    .get(middlewares.checkID, verifyToken.verifyToken, homePageService.homePage)
 
 Router.route('/client/search/food')
-    .post(middlewares.checkBodyNull, homePageService.getFoodByName)
+    .post(middlewares.checkBodyNull, verifyToken.verifyToken, homePageService.getFoodByName)
 Router.route('/client/filter/food')
-    .post(middlewares.checkBodyNull, homePageService.getFoodByCategoryId)
+    .post(middlewares.checkBodyNull, verifyToken.verifyToken, homePageService.getFoodByCategoryId)
 Router.route('/client/qr/:id')
-    .get(middlewares.checkID, homePageService.getQR)
+    .get(middlewares.checkID, verifyToken.verifyToken, homePageService.getQR)
 Router.route('/client/food/:id')
-    .get(middlewares.checkID, clientFooddService.getAllfood)
-    Router.route('/client/food/name/:id')
-    .post(middlewares.checkID, clientFooddService.getFoodByName)
+    .get(middlewares.checkID, verifyToken.verifyToken, clientFooddService.getAllfood)
+
+Router.route('/client/food/name/:id')
+    .post(middlewares.checkID, verifyToken.verifyToken, clientFooddService.getFoodByName)
 
 Router.route('/slide')
     .post(middlewares.checkBodyNull, verifyToken.verifyToken, SlideService.createslide)
@@ -205,7 +206,9 @@ Router.route('/slide/status')
     .post(middlewares.checkID, verifyToken.verifyToken, SlideService.editStatus)
 
 Router.route('/client/order/create')
-.post(middlewares.checkBodyNull,orderClientService.createMenuItem);
+    .post(middlewares.checkBodyNull, verifyToken.verifyToken, orderClientService.createMenuItem);
+Router.route('/client/order/:id')
+    .get(middlewares.checkID, orderClientService.getOrder);
 
 module.exports = Router;
 

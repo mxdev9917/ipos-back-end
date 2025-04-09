@@ -54,7 +54,7 @@ const getSlider = async (restaurant_ID) => {
 
 const getSuggested = async (restaurant_ID) => {
     return new Promise((resolve, reject) => {
-        const sql = `SELECT food_ID, food_name, price, food_img
+        const sql = `SELECT food_ID, food_name, price,category_ID, food_img
                      FROM Foods 
                      WHERE restaurant_ID = ? AND suggested = ?`;
 
