@@ -18,6 +18,7 @@ const homePageService = require('./services/client/homePageService');
 const SlideService = require('./services/slidesService');
 const clientFooddService = require('./services/client/foodService');
 const orderClientService = require('./services/client/orderService')
+const notificationService = require('./services/NotificationService')
 
 // const { verifyToken } = require('./utils/encrypt');
 
@@ -209,6 +210,9 @@ Router.route('/client/order/create')
     .post(middlewares.checkBodyNull, verifyToken.verifyToken, orderClientService.createMenuItem);
 Router.route('/client/order/:id')
     .get(middlewares.checkID, orderClientService.getOrder);
+
+Router.route('/notification')
+    .post(middlewares.checkBodyNull, notificationService.fetchNotification)
 
 module.exports = Router;
 

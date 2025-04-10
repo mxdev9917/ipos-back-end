@@ -79,7 +79,7 @@ CREATE TABLE `Foods` (
   `food_name` VARCHAR(100) NOT NULL,
   `price` int NOT NULL,
   `food_status` VARCHAR(20) DEFAULT 'active',
-  `suggested`VARCHAR(20) DEFAULT 'false',
+  `suggested` VARCHAR(20) DEFAULT 'false',
   `food_img` VARCHAR(150),
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -150,12 +150,22 @@ CREATE TABLE `Sliders`(
   `slider_ID` INT NOT NULL AUTO_INCREMENT,
   `restaurant_ID` INT NOT NULL,
   `slider_url` VARCHAR(100) NOT NULL,
-  `slider_visibility`VARCHAR(20) DEFAULT 'active',
+  `slider_visibility` VARCHAR(20) DEFAULT 'active',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `update_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (slider_ID),
   FOREIGN KEY (`restaurant_ID`) REFERENCES `Restaurants` (`restaurant_ID`) ON DELETE CASCADE
 );
 
-
-
+CREATE TABLE `Notifications`(
+  `Notifications_ID` INT Not NULL AUTO_INCREMENT,
+  `restaurant_ID` INT,
+  `table_ID` INT,
+  `Notifications` VARCHAR(255) NOT NULL,
+  `Notifications_status`VARCHAR(20) DEFAULT 'read',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`Notifications_ID`),
+  FOREIGN KEY (`table_ID`) REFERENCES `Tables` (`table_ID`) ON DELETE CASCADE,
+   FOREIGN KEY (`restaurant_ID`) REFERENCES `Restaurants` (`restaurant_ID`) ON DELETE CASCADE
+);
