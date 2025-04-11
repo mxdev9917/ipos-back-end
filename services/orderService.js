@@ -1,43 +1,72 @@
 const errors = require('../utils/errors')
 const db = require('../db/connection');
 const encrypt = require('../utils/encryptTableToken')
+const { createNotification } = require('./NotificationService');
 
 exports.createOrder = async (req, res, next) => {
-    let body = req.body;
-    const { table_ID, user_ID, table_status, restaurant_ID } = body;
+    const { table_ID, user_ID, table_status, restaurant_ID } = req.body;
     const currentDate = new Date();
-    try {
-        const token = await encrypt.generateJWT({
-            table_ID: table_ID,
-            user_type: 'client',
-            restaurant_ID: restaurant_ID 
 
+    // Basic validation
+    if (!table_ID || !user_ID || !restaurant_ID || !table_status) {
+        return res.status(400).json({ status: "400", message: "Missing required fields." });
+    }
+
+    try {
+        // Generate token for the table
+        const token = await encrypt.generateJWT({
+            table_ID,
+            user_type: 'client',
+            restaurant_ID
         });
-        const sql = `INSERT INTO Orders (table_ID,user_ID,restaurant_ID, created_at) VALUES(?,?,?,?)`;
-        db.query(sql, [table_ID, user_ID, restaurant_ID, currentDate], (error, results) => {
+
+        const notifications = "ຍີນດີຕ້ອນຮັບສູ່ຮ້ານອາຫານຂອງເຮົາ";
+
+        // Insert the new order
+        const insertOrderSQL = `
+            INSERT INTO Orders (table_ID, user_ID, restaurant_ID, created_at) 
+            VALUES (?, ?, ?, ?)
+        `;
+        db.query(insertOrderSQL, [table_ID, user_ID, restaurant_ID, currentDate], async (error, results) => {
             if (error) {
-                console.error('Error create oder:', error.message);
-                errors.mapError(error, 500, "Error create oder", next)
-                return;
+                console.error('Error creating order:', error.message);
+                return errors.mapError(error, 500, "Error creating order", next);
             }
 
-            const sql = `UPDATE Tables SET table_status=?,table_token=? WHERE table_ID=? `;
-            db.query(sql, [table_status, token, table_ID], (error) => {
+            // Update the table with status and token
+            const updateTableSQL = `
+                UPDATE Tables 
+                SET table_status = ?, table_token = ? 
+                WHERE table_ID = ?
+            `;
+            db.query(updateTableSQL, [table_status, token, table_ID], async (error) => {
                 if (error) {
-                    console.error('Error update table status:', error.message);
-                    errors.mapError(error, 500, "Error update table status", next)
-                    return;
+                    console.error('Error updating table status:', error.message);
+                    return errors.mapError(error, 500, "Error updating table status", next);
                 }
-            });
 
-            return res.status(200).json({ status: "200", message: 'successfully' });
+                // Send notification
+                try {
+                    await createNotification(restaurant_ID, table_ID, notifications, "client");
+                    console.log("Notification inserted successfully");
+                } catch (err) {
+                    console.error("Error sending notification:", err.message);
+                }
+
+                // Success response
+                return res.status(200).json({
+                    status: "200",
+                    message: 'Successfully created order and updated table.'
+                });
+            });
         });
 
     } catch (error) {
-        console.log(error.message);
-        errors.mapError(500, "Internal server error", next);
+        console.error("Unexpected error:", error.message);
+        return errors.mapError(500, "Internal server error", next);
     }
-}
+};
+
 
 exports.cancelOrder = (req, res, next) => {
     let { id } = req.params;

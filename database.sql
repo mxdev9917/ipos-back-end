@@ -158,14 +158,15 @@ CREATE TABLE `Sliders`(
 );
 
 CREATE TABLE `Notifications`(
-  `Notifications_ID` INT Not NULL AUTO_INCREMENT,
+  `notifications_ID` INT Not NULL AUTO_INCREMENT,
   `restaurant_ID` INT,
   `table_ID` INT,
-  `Notifications` VARCHAR(255) NOT NULL,
-  `Notifications_status`VARCHAR(20) DEFAULT 'read',
+  `notifications` VARCHAR(150) NOT NULL,
+  `user_type` VARCHAR(25) NOT NULL,
+  `notifications_status`VARCHAR(20) DEFAULT 'read',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `update_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`Notifications_ID`),
+  PRIMARY KEY (`notifications_ID`),
   FOREIGN KEY (`table_ID`) REFERENCES `Tables` (`table_ID`) ON DELETE CASCADE,
    FOREIGN KEY (`restaurant_ID`) REFERENCES `Restaurants` (`restaurant_ID`) ON DELETE CASCADE
 );
