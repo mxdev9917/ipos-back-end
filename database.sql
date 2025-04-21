@@ -163,10 +163,22 @@ CREATE TABLE `Notifications`(
   `table_ID` INT,
   `notifications` VARCHAR(150) NOT NULL,
   `user_type` VARCHAR(25) NOT NULL,
-  `notifications_status`VARCHAR(20) DEFAULT 'read',
+  `notifications_status` VARCHAR(20) DEFAULT 'read',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `update_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`notifications_ID`),
   FOREIGN KEY (`table_ID`) REFERENCES `Tables` (`table_ID`) ON DELETE CASCADE,
-   FOREIGN KEY (`restaurant_ID`) REFERENCES `Restaurants` (`restaurant_ID`) ON DELETE CASCADE
+  FOREIGN KEY (`restaurant_ID`) REFERENCES `Restaurants` (`restaurant_ID`) ON DELETE CASCADE
+);
+
+CREATE TABLE `chat_messages` (
+  `chat_id` INT AUTO_INCREMENT PRIMARY KEY,
+  `restaurant_ID` INT NOT NULL,
+  `table_ID` INT NOT NULL,
+  `chat_type` VARCHAR(25) NOT NULL,
+  `messages` TEXT NOT NULL,
+  `sent_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `is_read` BOOLEAN DEFAULT FALSE,
+  FOREIGN KEY (`table_ID`) REFERENCES `Tables` (`table_ID`),
+  FOREIGN KEY (`restaurant_ID`) REFERENCES `Restaurants` (`restaurant_ID`) ON DELETE CASCADE
 );

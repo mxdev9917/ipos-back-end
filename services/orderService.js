@@ -1,7 +1,7 @@
 const errors = require('../utils/errors')
 const db = require('../db/connection');
 const encrypt = require('../utils/encryptTableToken')
-const { createNotification } = require('./NotificationService');
+const { createNotification } = require('./notificationService');
 
 exports.createOrder = async (req, res, next) => {
     const { table_ID, user_ID, table_status, restaurant_ID } = req.body;

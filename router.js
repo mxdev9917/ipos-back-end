@@ -18,7 +18,8 @@ const homePageService = require('./services/client/homePageService');
 const SlideService = require('./services/slidesService');
 const clientFooddService = require('./services/client/foodService');
 const orderClientService = require('./services/client/orderService')
-const notificationService = require('./services/NotificationService')
+const notificationService = require('./services/notificationService')
+const chatService = require('./services/chatsService')
 
 // const { verifyToken } = require('./utils/encrypt');
 
@@ -216,9 +217,13 @@ Router.route('/notification')
 
 Router.route('/notification/:id')
     .patch(middlewares.checkID, verifyToken.verifyToken, notificationService.editStatusNotification)
-    Router.route('/restaurant_ID/notification/:id')
-    .get(middlewares.checkID,  notificationService.fetchResNotification)
+Router.route('/restaurant_ID/notification/:id')
+    .get(middlewares.checkID, notificationService.fetchResNotification)
 
+Router.route('/messages')
+    .post(middlewares.checkBodyNull, chatService.createChat)
+    Router.route('/client/messages')
+    .post(middlewares.checkBodyNull, chatService.getAllChat)
 module.exports = Router;
 
 
