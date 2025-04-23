@@ -174,11 +174,13 @@ CREATE TABLE `Notifications`(
 CREATE TABLE `chat_messages` (
   `chat_id` INT AUTO_INCREMENT PRIMARY KEY,
   `restaurant_ID` INT NOT NULL,
+  `order_ID` INT NOT NULL,
   `table_ID` INT NOT NULL,
   `chat_type` VARCHAR(25) NOT NULL,
   `messages` TEXT NOT NULL,
   `sent_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   `is_read` BOOLEAN DEFAULT FALSE,
   FOREIGN KEY (`table_ID`) REFERENCES `Tables` (`table_ID`),
+  FOREIGN KEY (`order_ID`) REFERENCES `Orders`(`order_ID`) ON DELETE CASCADE,
   FOREIGN KEY (`restaurant_ID`) REFERENCES `Restaurants` (`restaurant_ID`) ON DELETE CASCADE
 );

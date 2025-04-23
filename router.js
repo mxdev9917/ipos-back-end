@@ -211,19 +211,25 @@ Router.route('/client/order/create')
     .post(middlewares.checkBodyNull, verifyToken.verifyToken, orderClientService.createMenuItem);
 Router.route('/client/order/:id')
     .get(middlewares.checkID, verifyToken.verifyToken, orderClientService.getOrder);
-
+Router.route('/notification/create')
+    .post(middlewares.checkBodyNull,notificationService.postNotification)
 Router.route('/notification')
     .post(middlewares.checkBodyNull, verifyToken.verifyToken, notificationService.fetchNotification)
-
 Router.route('/notification/:id')
     .patch(middlewares.checkID, verifyToken.verifyToken, notificationService.editStatusNotification)
 Router.route('/restaurant_ID/notification/:id')
     .get(middlewares.checkID, notificationService.fetchResNotification)
-
 Router.route('/messages')
     .post(middlewares.checkBodyNull, chatService.createChat)
-    Router.route('/client/messages')
+    .patch(middlewares.checkBodyNull, chatService.updateIsRead)
+Router.route('/messages/:id')
+    .delete(middlewares.checkID, chatService.deleteMessage)
+Router.route('/client/messages')
     .post(middlewares.checkBodyNull, chatService.getAllChat)
+Router.route('/client/messages/count')
+    .post(middlewares.checkBodyNull, chatService.countMessage)
+
+
 module.exports = Router;
 
 

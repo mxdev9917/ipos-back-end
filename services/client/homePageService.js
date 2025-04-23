@@ -15,16 +15,17 @@ exports.homePage = async (req, res, next) => {
     try {
         const category = await getCategory(id);
         const food = await getAllfood(id);
-        const Suggested = await getSuggested(id);
+        const suggested = await getSuggested(id);
         const slide = await getSlider(id);
-
+         const restaurant = await getRestaurant(id)
         return res.status(200).json({
             status: "200",
             message: "Successfully fetched order",
             category,
             food,
-            Suggested,
-            slide
+            suggested,
+            slide,
+            restaurant
         });
 
     } catch (fetchError) {
@@ -219,6 +220,26 @@ exports.getFoodByCategoryId = async (req, res, next) => {
         next(error);
     }
 };
+
+const getRestaurant = (restaurant_ID) => {
+    return new Promise((resolve, reject) => {
+        const sql = `SELECT restaurant_name FROM Restaurants WHERE restaurant_ID = ?`;
+
+        db.query(sql, [restaurant_ID], (error, results) => {
+            if (error) {
+                console.error("Error fetching restaurant name:", error);
+                return reject(new Error("Database query failed"));
+            }
+
+            if (results.length === 0) {
+                return reject(new Error("Restaurant not found"));
+            }
+
+            resolve(results[0].restaurant_name);
+        });
+    });
+};
+
 
 // ====================== Get QR Code for Table ======================
 

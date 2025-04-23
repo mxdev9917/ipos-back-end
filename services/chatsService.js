@@ -1,15 +1,35 @@
 const errors = require('../utils/errors');
 const db = require('../db/connection');
-const { error } = require('winston');
 
-exports.createChat = (req, res, next) => {
+// Create a new chat message
+exports.createChat = async (req, res, next) => {
     try {
         const { restaurant_ID, table_ID, chat_type, messages } = req.body;
-        const sql = `INSERT INTO chat_messages (restaurant_ID, table_ID, chat_type, messages) VALUES (?, ?, ?, ?)`;
-        db.query(sql, [restaurant_ID, table_ID, chat_type, messages], (error) => {
+
+        // Get order_ID for the table
+        let order_ID;
+        try {
+            order_ID = await filterOrderID(table_ID);
+        } catch (error) {
+            return res.status(404).json({
+                status: "404",
+                message: "No unpaid order found for this table"
+            });
+        }
+
+        const sql = `
+            INSERT INTO chat_messages 
+            (restaurant_ID, table_ID, chat_type, messages, order_ID) 
+            VALUES (?, ?, ?, ?, ?)
+        `;
+
+        db.query(sql, [restaurant_ID, table_ID, chat_type, messages, order_ID], (error) => {
             if (error) {
                 console.error('Error inserting chat_messages:', error.message);
-                return next(errors.mapError(500, "Internal server error"));
+                return res.status(500).json({
+                    status: "500",
+                    message: "Internal server error"
+                });
             }
 
             return res.status(200).json({
@@ -17,76 +37,259 @@ exports.createChat = (req, res, next) => {
                 message: "Chat message inserted successfully",
             });
         });
+
     } catch (error) {
-
-        console.error("Unexpected error in  creating chat:", error.message);
-        return next(errors.mapError(500, "Internal server error", next));
+        console.error("Unexpected error in creating chat:", error.message);
+        return res.status(500).json({
+            status: "500",
+            message: "Internal server error"
+        });
     }
-}
+};
 
-exports.getAllChat = (req, res, next) => {
+// Get all chat messages for a table
+exports.getAllChat = async (req, res, next) => {
     try {
         const { restaurant_ID, table_ID, chat_type } = req.body;
-        const { page, limit } = req.query;
-
-        const pageNumber = parseInt(page) || 1;
-        const pageLimit = parseInt(limit) || 100;
-        const offset = (pageNumber - 1) * pageLimit;
 
         // Validation
         if (!restaurant_ID || !table_ID) {
-            return next(errors.mapError(400, "restaurant_ID and table_ID are required"));
+            return res.status(400).json({
+                status: "400",
+                message: "restaurant_ID and table_ID are required"
+            });
         }
 
-        const sql = `
+        // Get order_ID for the table
+        let order_ID;
+        try {
+            order_ID = await filterOrderID(table_ID);
+        } catch (error) {
+            return res.status(404).json({
+                status: "404",
+                message: "No unpaid order found for this table"
+            });
+        }
+
+        let sql = `
             SELECT chat_id, chat_type, messages, is_read, sent_at
             FROM chat_messages
-            WHERE restaurant_ID = ? AND table_ID = ?
-            ${chat_type ? 'AND chat_type = ?' : ''}
-            LIMIT ? OFFSET ?
+            WHERE restaurant_ID = ? AND table_ID = ? AND order_ID = ?
         `;
 
-        const queryParams = chat_type
-            ? [restaurant_ID, table_ID, chat_type, pageLimit, offset]
-            : [restaurant_ID, table_ID, pageLimit, offset];
+        const queryParams = [restaurant_ID, table_ID, order_ID];
+
+        if (chat_type) {
+            sql += ' AND chat_type = ?';
+            queryParams.push(chat_type);
+        }
 
         db.query(sql, queryParams, (error, results) => {
             if (error) {
                 console.error('Error fetching chat_messages:', error.message);
-                return next(errors.mapError(500, "Internal server error"));
-            }
-
-            const countSql = `
-                SELECT COUNT(*) AS total
-                FROM chat_messages
-                WHERE restaurant_ID = ? AND table_ID = ?
-                ${chat_type ? 'AND chat_type = ?' : ''}
-            `;
-
-            const countParams = chat_type
-                ? [restaurant_ID, table_ID, chat_type]
-                : [restaurant_ID, table_ID];
-
-            db.query(countSql, countParams, (countError, countResults) => {
-                if (countError) {
-                    console.error('Error counting chat_messages:', countError.message);
-                    return next(errors.mapError(500, "Internal server error"));
-                }
-
-                const totalRecords = countResults[0].total;
-
-                return res.status(200).json({
-                    status: "200",
-                    message: 'Fetched chat messages successfully',
-                    total_item: totalRecords,
-                    current_page: pageNumber,
-                    data: results,
+                return res.status(500).json({
+                    status: "500",
+                    message: "Internal server error"
                 });
+            }
+            return res.status(200).json({
+                status: "200",
+                message: 'Fetched chat messages successfully',
+                data: results,
             });
         });
 
     } catch (error) {
         console.error("Unexpected error in getAllChat:", error.message);
-        return next(errors.mapError(500, "Internal server error"));
+        return res.status(500).json({
+            status: "500",
+            message: "Internal server error"
+        });
     }
+};
+
+// Count unread chat messages for a table
+exports.countMessage = async (req, res, next) => {
+    try {
+        const { restaurant_ID, table_ID } = req.body;
+
+        // Get order_ID for the table
+        let order_ID;
+        try {
+            order_ID = await filterOrderID(table_ID);
+        } catch (error) {
+            return res.status(404).json({
+                status: "404",
+                message: "No unpaid order found for this table"
+            });
+        }
+
+        const sql = `SELECT COUNT(*) AS message 
+            FROM chat_messages 
+            WHERE restaurant_ID = ? 
+            AND table_ID = ? 
+            AND is_read = ? 
+            AND chat_type = ? 
+            AND order_ID = ?`;
+
+        db.query(sql, [restaurant_ID, table_ID, false, "admin", order_ID], (countError, countResults) => {
+            if (countError) {
+                console.error('Error counting chat_messages:', countError.message);
+                return res.status(500).json({
+                    status: "500",
+                    message: "Internal server error"
+                });
+            }
+
+            return res.status(200).json({
+                status: "200",
+                message: 'Fetched total count of chat messages successfully',
+                data: countResults[0],
+            });
+        });
+
+    } catch (error) {
+        console.error("Unexpected error in countMessage:", error.message);
+        return res.status(500).json({
+            status: "500",
+            message: "Internal server error"
+        });
+    }
+};
+
+// Update message read status to true
+exports.updateIsRead = async (req, res, next) => {
+    try {
+        const { restaurant_ID, table_ID, chat_type } = req.body;
+        console.log({ restaurant_ID, table_ID, chat_type });
+
+
+        // Get order_ID for the table
+        let order_ID;
+        try {
+            order_ID = await filterOrderID(table_ID);
+        } catch (error) {
+            return res.status(404).json({
+                status: "404",
+                message: "No unpaid order found for this table"
+            });
+        }
+
+        const selectSQL = `
+            SELECT chat_id 
+            FROM chat_messages 
+            WHERE restaurant_ID = ? AND table_ID = ? AND chat_type = ? AND order_ID = ?
+        `;
+
+        db.query(selectSQL, [restaurant_ID, table_ID, chat_type, order_ID], (error, results) => {
+            if (error) {
+                console.error('Error fetching chat_messages:', error.message);
+                return res.status(500).json({
+                    status: "500",
+                    message: "Internal server error"
+                });
+            }
+
+            if (!results.length) {
+                return res.status(200).json({
+                    status: "200",
+                    message: "No messages to update"
+                });
+            }
+
+            const chatIds = results.map(row => row.chat_id);
+
+            console.log("Chat IDs to update:", chatIds);
+
+            const updateSQL = `
+                UPDATE chat_messages 
+                SET is_read = 1 
+                WHERE chat_id IN (?) AND is_read = 0
+            `;
+
+            db.query(updateSQL, [chatIds], (err, result) => {
+                if (err) {
+                    console.error('Error updating chat_messages:', err.message);
+                    return res.status(500).json({
+                        status: "500",
+                        message: "Internal server error"
+                    });
+                }
+
+                console.log("Update result:", result);
+
+                if (result.changedRows === 0) {
+                    return res.status(200).json({
+                        status: "200",
+                        message: "All messages were already marked as read"
+                    });
+                }
+
+                res.status(200).json({
+                    status: "200",
+                    message: `${result.changedRows} message(s) marked as read`
+                });
+            });
+        });
+    } catch (error) {
+        console.error("Unexpected error in updateIsRead:", error.message);
+        return res.status(500).json({
+            status: "500",
+            message: "Internal server error"
+        });
+    }
+};
+
+exports.deleteMessage = (req, res, next) => {
+    try {
+        let { id } = req.params;
+        id = Number(id);  // Convert the 'id' to a number
+        if (Number.isNaN(id)) {
+            return errors.mapError(400, "Request parameter invalid type", next);  // Change 404 to 400 for invalid input
+        }
+        const sql = 'DELETE FROM chat_messages WHERE chat_id = ?';
+        db.query(sql, [id], (error, results) => {
+            if (error) {
+                console.error('Error deleting message:', error.message);
+                errors.mapError(500, "Internal server error", next);
+                return;
+            }
+            if (results.affectedRows === 0) {
+                return res.status(404).json({ message: 'message not found' });
+            }
+            return res.status(200).json({
+                status: "200",
+                message: 'message deleted successfully',
+                data: results
+            });
+        });
+    } catch (error) {
+        console.log(error.message);
+        errors.mapError(500, "Internal server error", next);
+    }
+    
+}
+
+
+
+// Helper function to filter unpaid order
+const filterOrderID = (table_ID) => {
+    const status = "unpaid";
+    return new Promise((resolve, reject) => {
+        const sql = `SELECT order_ID FROM Orders WHERE table_ID = ? AND order_status = ? LIMIT 1`;
+        db.query(sql, [table_ID, status], (error, results) => {
+            if (error) {
+                console.error("Error fetching order_ID:", error);
+                reject(new Error("Error fetching order_ID"));
+                return;
+            }
+
+            if (results.length === 0) {
+                reject(new Error("No unpaid order found for this table"));
+                return;
+            }
+
+            resolve(results[0].order_ID);
+        });
+    });
 };

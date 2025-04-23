@@ -4,7 +4,24 @@ const { log } = require('winston');
 const { Console } = require('winston/lib/winston/transports');
 
 
-exports.createNotification = async (restaurant_ID, table_ID, notifications, user_type) => {
+
+exports.postNotification = async (req,res,next)=>{
+    const {restaurant_ID, table_ID, notifications, user_type}=req.body;
+   
+    try {
+        await createNotification(restaurant_ID, table_ID, notifications, user_type);
+        console.log("Notification inserted successfully");
+        return res.status(200).json({
+            status: "200",
+            message: "Notification inserted successfully"
+        });
+    } catch (err) {
+        console.error("Error sending notification:", err.message);
+    }
+
+}
+
+const createNotification = async (restaurant_ID, table_ID, notifications, user_type) => {
     return new Promise((resolve, reject) => {
         const sql = `
             INSERT INTO Notifications (restaurant_ID, table_ID, notifications, user_type) 
@@ -53,20 +70,43 @@ exports.editStatusNotification = (req, res, next) => {
 exports.fetchNotification = (req, res, next) => {
     try {
         const { restaurant_ID, table_ID } = req.body;
-        const sql = `SELECT * FROM Notifications WHERE restaurant_ID = ? AND table_ID = ? AND user_type=? AND notifications_status="read"`;
-        db.query(sql, [restaurant_ID, table_ID, "client"], (error, results) => {
+
+        const sql = `
+            SELECT * FROM Notifications 
+            WHERE restaurant_ID = ? 
+            AND table_ID = ? 
+            AND user_type = ? 
+            AND LOWER(notifications_status) = ?
+        `;
+
+        db.query(sql, [restaurant_ID, table_ID, "client","read"], (error, results) => {
             if (error) {
                 console.error("[fetchNotification] Error fetching notifications:", error);
                 return next(errors.mapError(500, "Internal server error", next));
             }
 
-            return res.status(200).json({ status: "200", message: 'fetching notification Successfully ', data: results });
+            // Optional: handle empty results
+            if (results.length === 0) {
+                return res.status(200).json({
+                    status: "204",
+                    message: "No notifications found",
+                    data: [],
+                });
+            }
+
+            return res.status(200).json({
+                status: "200",
+                message: "Fetching notifications successfully",
+                data: results,
+            });
         });
+
     } catch (error) {
-        console.error("Unexpected error in get notification:", error.message);
+        console.error("Unexpected error in fetchNotification:", error.message);
         return next(errors.mapError(500, "Internal server error", next));
     }
 };
+
 
 exports.fetchResNotification = (req, res, next) => {
     try {
