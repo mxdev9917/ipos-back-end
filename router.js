@@ -212,7 +212,7 @@ Router.route('/client/order/create')
 Router.route('/client/order/:id')
     .get(middlewares.checkID, verifyToken.verifyToken, orderClientService.getOrder);
 Router.route('/notification/create')
-    .post(middlewares.checkBodyNull,notificationService.postNotification)
+    .post(middlewares.checkBodyNull, notificationService.postNotification)
 Router.route('/notification')
     .post(middlewares.checkBodyNull, verifyToken.verifyToken, notificationService.fetchNotification)
 Router.route('/notification/:id')
@@ -228,6 +228,9 @@ Router.route('/client/messages')
     .post(middlewares.checkBodyNull, chatService.getAllChat)
 Router.route('/client/messages/count')
     .post(middlewares.checkBodyNull, chatService.countMessage)
+
+Router.route('/restaurant/message/:id')
+    .get(middlewares.checkID, chatService.getItemMessage)
 
 
 module.exports = Router;

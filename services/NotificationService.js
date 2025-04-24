@@ -5,18 +5,17 @@ const { Console } = require('winston/lib/winston/transports');
 
 
 
-exports.postNotification = async (req,res,next)=>{
-    const {restaurant_ID, table_ID, notifications, user_type}=req.body;
-   
+exports.postNotification = async (req, res, next) => {
+    const { restaurant_ID, table_ID, notifications, user_type } = req.body;
     try {
         await createNotification(restaurant_ID, table_ID, notifications, user_type);
-        console.log("Notification inserted successfully");
         return res.status(200).json({
             status: "200",
             message: "Notification inserted successfully"
         });
     } catch (err) {
-        console.error("Error sending notification:", err.message);
+        console.error("Unexpected error:", error.message);
+        return errors.mapError(500, "Internal server error", next);
     }
 
 }
@@ -79,7 +78,7 @@ exports.fetchNotification = (req, res, next) => {
             AND LOWER(notifications_status) = ?
         `;
 
-        db.query(sql, [restaurant_ID, table_ID, "client","read"], (error, results) => {
+        db.query(sql, [restaurant_ID, table_ID, "client", "read"], (error, results) => {
             if (error) {
                 console.error("[fetchNotification] Error fetching notifications:", error);
                 return next(errors.mapError(500, "Internal server error", next));
@@ -129,3 +128,5 @@ exports.fetchResNotification = (req, res, next) => {
         return next(errors.mapError(500, "Internal server error", next));
     }
 };
+
+

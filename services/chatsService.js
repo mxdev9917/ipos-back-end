@@ -1,5 +1,6 @@
 const errors = require('../utils/errors');
 const db = require('../db/connection');
+const { log, error } = require('winston');
 
 // Create a new chat message
 exports.createChat = async (req, res, next) => {
@@ -267,8 +268,43 @@ exports.deleteMessage = (req, res, next) => {
         console.log(error.message);
         errors.mapError(500, "Internal server error", next);
     }
-    
+
 }
+
+exports.getItemMessage = (req, res, next) => {
+    const { id } = req.params;
+    if (!id || isNaN(Number(id))) {
+        return res.status(400).json({ success: false, message: "Invalid ID" });
+    }
+    try {
+        const status = "unpaid";
+        const sql = `
+            SELECT ch.chat_id, t.table_name,ch.messages
+            FROM chat_messages ch
+            JOIN Orders o ON ch.order_ID = o.order_ID
+            JOIN Tables t ON o.table_ID = t.table_ID
+            WHERE ch.restaurant_ID = ? AND o.order_status = ?
+        `;
+
+        db.query(sql, [id, status], (error, results) => {
+            if (error) {
+                console.error('Error fetching message:', error.message);
+                return errors.mapError(500, "Internal server error", next);
+            }
+
+            return res.status(200).json({
+                status: "200",
+                message: 'Fetched item messages successfully',
+                data: results
+            });
+        });
+
+    } catch (error) {
+        console.log(error.message);
+        errors.mapError(500, "Internal server error", next);
+    }
+};
+
 
 
 
@@ -293,3 +329,5 @@ const filterOrderID = (table_ID) => {
         });
     });
 };
+
+
