@@ -228,7 +228,8 @@ Router.route('/client/messages')
     .post(middlewares.checkBodyNull, chatService.getAllChat)
 Router.route('/client/messages/count')
     .post(middlewares.checkBodyNull, chatService.countMessage)
-
+Router.route('/admin/messages')
+    .post(middlewares.checkBodyNull, chatService.adminMessage)
 Router.route('/restaurant/message/:id')
     .get(middlewares.checkID, chatService.getItemMessage)
 

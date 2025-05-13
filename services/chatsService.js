@@ -1,6 +1,7 @@
 const errors = require('../utils/errors');
 const db = require('../db/connection');
 const { log, error } = require('winston');
+const { and } = require('sequelize');
 
 // Create a new chat message
 exports.createChat = async (req, res, next) => {
@@ -60,7 +61,6 @@ exports.getAllChat = async (req, res, next) => {
                 message: "restaurant_ID and table_ID are required"
             });
         }
-
         // Get order_ID for the table
         let order_ID;
         try {
@@ -279,7 +279,7 @@ exports.getItemMessage = (req, res, next) => {
     try {
         const status = "unpaid";
         const sql = `
-            SELECT ch.chat_id, t.table_name,ch.messages
+            SELECT ch.chat_id, t.table_name,t.table_ID,ch.messages
             FROM chat_messages ch
             JOIN Orders o ON ch.order_ID = o.order_ID
             JOIN Tables t ON o.table_ID = t.table_ID
@@ -304,6 +304,48 @@ exports.getItemMessage = (req, res, next) => {
         errors.mapError(500, "Internal server error", next);
     }
 };
+
+exports.adminMessage = async (req, res, next) => {
+    const { restaurant_ID, table_ID } = req.body;
+
+    // Get order_ID for the table
+    let order_ID;
+    try {
+        order_ID = await filterOrderID(table_ID);
+    } catch (error) {
+        return res.status(404).json({
+            status: "404",
+            message: "No unpaid order found for this table"
+        });
+    }
+
+    try {
+        let sql = `
+            SELECT chat_id, chat_type, messages, is_read, sent_at
+            FROM chat_messages
+            WHERE restaurant_ID = ? AND table_ID = ? AND order_ID = ?
+        `;
+
+        const queryParams = [restaurant_ID, table_ID, order_ID];
+        db.query(sql, queryParams, (error, results) => {
+            if (error) {
+                console.error('Error fetching chat_messages:', error.message);
+                return res.status(500).json({
+                    status: "500",
+                    message: "Internal server error"
+                });
+            }
+            return res.status(200).json({
+                status: "200",
+                message: 'Fetched chat messages successfully',
+                data: results,
+            });
+        });
+    } catch (error) {
+        console.log(error.message);
+        errors.mapError(500, "Internal server error", next);
+    }
+}
 
 
 
