@@ -1,7 +1,8 @@
 const encrypt = require('../utils/encrypt');
 const mysql = require('mysql2');
 const dotenv = require('dotenv');
-const errors = require('../utils/errors')
+const errors = require('../utils/errors');
+const { log } = require('winston');
 dotenv.config({ path: './config.env' });
 
 const pool = mysql.createPool({
@@ -79,6 +80,7 @@ pool.getConnection((err, connection) => {
         });
     } catch (error) {
         console.log(error.message);
+       
         errors.mapError(500, 'Internal server error', next);
     }
 });
