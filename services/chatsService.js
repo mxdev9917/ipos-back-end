@@ -100,6 +100,7 @@ exports.getAllChat = async (req, res, next) => {
             });
         });
 
+        
     } catch (error) {
         console.error("Unexpected error in getAllChat:", error.message);
         return res.status(500).json({
