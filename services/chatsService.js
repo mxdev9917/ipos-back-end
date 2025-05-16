@@ -433,3 +433,51 @@ const filterOrderID = (table_ID) => {
 };
 
 
+exports.countMessageAdmin = async (req, res, next) => {
+    const { id } = req.params;
+
+    if (!id || isNaN(Number(id))) {
+        return res.status(400).json({ success: false, message: "Invalid restaurant ID" });
+    }
+
+    const restaurant_ID = Number(id); // ensure it's a number
+    const chat_type = "client";
+    const order_status = "unpaid";
+
+    const sql = `
+        SELECT ch.chat_id, t.table_ID, t.table_name, ch.messages,ch.is_read,ch.sent_at
+        FROM chat_messages ch
+        JOIN Orders o ON ch.order_ID = o.order_ID
+        JOIN Tables t ON o.table_ID = t.table_ID
+        WHERE 
+            ch.restaurant_ID = ? 
+            AND o.order_status = ? 
+            AND ch.chat_type = ?`;
+
+    try {
+        db.query(sql, [restaurant_ID, order_status, chat_type], (error, results) => {
+            if (error) {
+                console.error('Error fetching chat_messages:', error.message);
+                return res.status(500).json({
+                    status: "500",
+                    message: "Internal server error"
+                });
+            }
+
+            return res.status(200).json({
+                 status: "200",
+                message: 'Fetched chat messages successfully',
+                data: results
+            });
+        });
+    } catch (error) {
+        console.error('Unexpected error:', error.message);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+};
+
+
+
