@@ -7,13 +7,11 @@ exports.createOrder = async (req, res, next) => {
     const { table_ID, user_ID, table_status, restaurant_ID } = req.body;
     const currentDate = new Date();
 
-    // Basic validation
     if (!table_ID || !user_ID || !restaurant_ID || !table_status) {
         return res.status(400).json({ status: "400", message: "Missing required fields." });
     }
 
     try {
-        // Generate token for the table
         const token = await encrypt.generateJWT({
             table_ID,
             user_type: 'client',
@@ -22,7 +20,6 @@ exports.createOrder = async (req, res, next) => {
 
         const notifications = "ຍີນດີຕ້ອນຮັບສູ່ຮ້ານອາຫານຂອງເຮົາ";
 
-        // Insert the new order
         const insertOrderSQL = `
             INSERT INTO Orders (table_ID, user_ID, restaurant_ID, created_at) 
             VALUES (?, ?, ?, ?)
@@ -33,7 +30,6 @@ exports.createOrder = async (req, res, next) => {
                 return errors.mapError(error, 500, "Error creating order", next);
             }
 
-            // Update the table with status and token
             const updateTableSQL = `
                 UPDATE Tables 
                 SET table_status = ?, table_token = ? 
@@ -44,16 +40,14 @@ exports.createOrder = async (req, res, next) => {
                     console.error('Error updating table status:', error.message);
                     return errors.mapError(error, 500, "Error updating table status", next);
                 }
-
-                // Send notification
                 try {
+                    console.log("Calling createNotification...");
                     await createNotification(restaurant_ID, table_ID, notifications, "client");
                     console.log("Notification inserted successfully");
                 } catch (err) {
                     console.error("Error sending notification:", err.message);
                 }
 
-                // Success response
                 return res.status(200).json({
                     status: "200",
                     message: 'Successfully created order and updated table.'
@@ -66,6 +60,7 @@ exports.createOrder = async (req, res, next) => {
         return errors.mapError(500, "Internal server error", next);
     }
 };
+
 
 
 exports.cancelOrder = (req, res, next) => {

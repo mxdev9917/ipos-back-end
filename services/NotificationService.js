@@ -14,13 +14,14 @@ exports.postNotification = async (req, res, next) => {
             message: "Notification inserted successfully"
         });
     } catch (err) {
+      
         console.error("Unexpected error:", error.message);
         return errors.mapError(500, "Internal server error", next);
     }
 
 }
 
-const createNotification = async (restaurant_ID, table_ID, notifications, user_type) => {
+exports.createNotification = async (restaurant_ID, table_ID, notifications, user_type) => {
     return new Promise((resolve, reject) => {
         const sql = `
             INSERT INTO Notifications (restaurant_ID, table_ID, notifications, user_type) 
@@ -128,5 +129,6 @@ exports.fetchResNotification = (req, res, next) => {
         return next(errors.mapError(500, "Internal server error", next));
     }
 };
+
 
 
